@@ -58,6 +58,9 @@ system2(hadoop_cmd, paste("fs -copyFromLocal",filename,savepath,sep = " ")) #sav
 
 # in shell action:  
 #Rscript test.R 28 28 /home/dsg/Rspace/datasets/train/cat/ /home/dsg/Rspace/datasets/train/dog/ /user/dsg/jpg/ train_cd.txt 
+# chmod +x test.R
+# test.R 28 28 /home/dsg/Rspace/datasets/train/cat/ /home/dsg/Rspace/datasets/train/dog/ /user/dsg/jpg/ train_cd.txt
+# 
 # library(rhdfs)
 # Sys.setenv("HADOOP_CMD"="/usr/bin/hadoop")
 # hdfs.init()
