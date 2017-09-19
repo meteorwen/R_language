@@ -20,13 +20,11 @@ library(parallel)
 library(magrittr)
 imagepath1 <- list.files(path1) %>% paste(path1, ., sep = "")
 imagepath2 <- list.files(path2) %>% paste(path2, ., sep = "")
-read_pic <- function(path){
+read_pic <- function(path,x,y){
   library(imager)
   library(magrittr)
   library(dplyr)
   res <- data.frame()
-  x <- 64
-  y <- 64
   return(
     res <- path %>% 
       imager::load.image() %>% 
@@ -40,14 +38,14 @@ read_pic <- function(path){
 
 cl <- makeCluster(detectCores()) 
 
-data1 <- parLapply(cl,imagepath1,read_pic) %>% 
+data1 <- parLapply(cl,imagepath1,read_pic,x,y) %>% 
   unlist %>% 
   array(c(length(imagepath1),x*y)) 
 
 lab1 <- rep(0,nrow(data1))
 dt1 <- cbind(lab1,data1)
 
-data2 <- parLapply(cl,imagepath2,read_pic) %>% 
+data2 <- parLapply(cl,imagepath2,read_pic,x,y) %>% 
   unlist %>% 
   array(c(length(imagepath2),x*y)) 
 lab2 <- rep(1,nrow(data2))
