@@ -6,7 +6,7 @@ library(magrittr)
 path <- "/home/dsg/Rspace/datasets/testt/"
 imagepath <- list.files(path) %>% paste(path, ., sep = "")
 
-fun <- function(path){
+fun <- function(path,x,y){
   library(imager)
   library(magrittr)
   library(dplyr)
@@ -20,13 +20,13 @@ fun <- function(path){
   )
 }
 
-system.time(data1 <- sapply(imagepath[1:100],fun))
+system.time(data1 <- sapply(imagepath,fun,x,y))
 # 用system.time来返回计算所需时间
 system.time({
   cl <- makeCluster(detectCores()) # 初始化16核心集群
-  data2 <- parLapply(cl,imagepath[1:100],fun) %>% 
+  data2 <- parLapply(cl,imagepath[1:100],fun,x,y) %>% 
     unlist %>% 
-    matrix(100,x*y,byrow=T)
+    matrix(length(imagepath),x*y,byrow=T)
   stopCluster(cl) # 关闭集群
 })
 # data2[25,] %>% array(c(x,y,1,1)) %>% as.cimg %>% plot
