@@ -9,38 +9,38 @@
 library(h2o)
 
 demo(h2o.glm)
-# -1±íÊ¾Ê¹ÓÃÄã»úÆ÷ÉÏËùÓÐµÄºË
-# max_mem_size²ÎÊý±íÊ¾ÔÊÐíh2oÊ¹ÓÃµÄ×î´óÄÚ´æ
+# -1è¡¨ç¤ºä½¿ç”¨ä½ æœºå™¨ä¸Šæ‰€æœ‰çš„æ ¸
+# max_mem_sizeå‚æ•°è¡¨ç¤ºå…è®¸h2oä½¿ç”¨çš„æœ€å¤§å†…å­˜
 h2o.init(nthreads = -1, max_mem_size = "6G")
 
-#¿ÉÒÔÖ±½Ó´ÓÒ»¸öURLÖÐµ¼ÈëÊý¾Ý
+#å¯ä»¥ç›´æŽ¥ä»Žä¸€ä¸ªURLä¸­å¯¼å…¥æ•°æ®
 loan_csv <- "https://raw.githubusercontent.com/h2oai/app-consumer-loan/master/data/loan.csv"
 data <- h2o.importFile(loan_csv)   
 
 dim(data) 
 # 163,987 rows x 15 columns
 
-# ÓÉÓÚÎÒÃÇÊÇÒ»¸ö¶þ·ÖÀàÎÊÌâ£¬ÎÒÃÇ±ØÐëÖ¸¶¨ÏìÓ¦±äÁ¿ÎªÒ»¸öÒò×ÓÀàÐÍ(factor)£¬
-# ÈôÏìÓ¦±äÁ¿Îª0/1,H2O»áÈÏÎªËûÊÇÒ»¸öÊýÖµ£¬ÄÇ½«ÒâÎ¶×ÅH2O»áÑµÁ·Ò»¸ö»Ø¹éÄ£ÐÍ£º
-#±àÂëÎªÒò×ÓÀàÐÍ
+# ç”±äºŽæˆ‘ä»¬æ˜¯ä¸€ä¸ªäºŒåˆ†ç±»é—®é¢˜ï¼Œæˆ‘ä»¬å¿…é¡»æŒ‡å®šå“åº”å˜é‡ä¸ºä¸€ä¸ªå› å­ç±»åž‹(factor)ï¼Œ
+# è‹¥å“åº”å˜é‡ä¸º0/1,H2Oä¼šè®¤ä¸ºä»–æ˜¯ä¸€ä¸ªæ•°å€¼ï¼Œé‚£å°†æ„å‘³ç€H2Oä¼šè®­ç»ƒä¸€ä¸ªå›žå½’æ¨¡åž‹ï¼š
+#ç¼–ç ä¸ºå› å­ç±»åž‹
 data$bad_loan <- as.factor(data$bad_loan)
 
-#²é¿´Òò×Ólevels
+#æŸ¥çœ‹å› å­levels
 h2o.levels(data$bad_loan)
 
-#½«ÑµÁ·¼¯£¬ÑéÖ¤¼¯Óë²âÊÔ¼¯
-#°´±ÈÀý·Ö±ðÉèÎª70%, 15%, 15%
+#å°†è®­ç»ƒé›†ï¼ŒéªŒè¯é›†ä¸Žæµ‹è¯•é›†
+#æŒ‰æ¯”ä¾‹åˆ†åˆ«è®¾ä¸º70%, 15%, 15%
 splits <- h2o.splitFrame(data = data, 
                          ratios = c(0.7, 0.15),   
-                         #Éè¶¨ÖÖ×Ó±£Ö¤¿ÉÖØ¸´ÐÔ                         
+                         #è®¾å®šç§å­ä¿è¯å¯é‡å¤æ€§                         
                          seed = 1) 
 
 train <- splits[[1]]
 valid <- splits[[2]]
 test <- splits[[3]]
 
-# ÎÒÃÇÀ´¿´ÏÂÊý¾Ý¸÷²¿·ÖµÄ´óÐ¡£¬×¢Òâh2o.splitFrameº¯ÊýÎªÁËÔËÐÐÐ§ÂÊ²ÉÓÃµÄÊÇ½üËÆ²ð·Ö·½·¨¶ø²»ÊÇ¾«È·²ð·Ö£¬
-# ¹ÊÄã»á·¢ÏÖÊý¾Ý´óÐ¡²»ÊÇ¾«È·µÄ70%, 15%Óë15%
+# æˆ‘ä»¬æ¥çœ‹ä¸‹æ•°æ®å„éƒ¨åˆ†çš„å¤§å°ï¼Œæ³¨æ„h2o.splitFrameå‡½æ•°ä¸ºäº†è¿è¡Œæ•ˆçŽ‡é‡‡ç”¨çš„æ˜¯è¿‘ä¼¼æ‹†åˆ†æ–¹æ³•è€Œä¸æ˜¯ç²¾ç¡®æ‹†åˆ†ï¼Œ
+# æ•…ä½ ä¼šå‘çŽ°æ•°æ®å¤§å°ä¸æ˜¯ç²¾ç¡®çš„70%, 15%ä¸Ž15%
 nrow(train)  
 # 114908
 nrow(valid) 
@@ -51,27 +51,27 @@ y <- "bad_loan"
 x <- setdiff(names(data),c(y, "int_rate")) 
 
 
-# ÏÂÃæÎÒÃÇ½«ÑµÁ·¼¸¸öÄ£ÐÍ£¬Ö÷ÒªµÄÄ£ÐÍ°üÀ¨H20¼à¶½Ëã·¨µÄ£º
+# ä¸‹é¢æˆ‘ä»¬å°†è®­ç»ƒå‡ ä¸ªæ¨¡åž‹ï¼Œä¸»è¦çš„æ¨¡åž‹åŒ…æ‹¬H20ç›‘ç£ç®—æ³•çš„ï¼š
 # 
-#1 ¹ãÒåÏßÐÔ»Ø¹éÄ£ÐÍ (GLM)
-#2 Ëæ»úÉ­ÁÖÄ£ÐÍ(RF)
-#3 GBM(Ò²³ÆGBDT)
-#4 Éî¶ÈÑ§Ï°(DL)
-#5 ÆÓËØ±´Ò¶Ë¹(NB)
+#1 å¹¿ä¹‰çº¿æ€§å›žå½’æ¨¡åž‹ (GLM)
+#2 éšæœºæ£®æž—æ¨¡åž‹(RF)
+#3 GBM(ä¹Ÿç§°GBDT)
+#4 æ·±åº¦å­¦ä¹ (DL)
+#5 æœ´ç´ è´å¶æ–¯(NB)
 
-#####################            1.¹ãÒåÏßÐÔ»Ø¹éÄ£ÐÍ (GLM)        ##################
-# ÈÃÎÒÃÇ´ÓÒ»¸ö»ù±¾µÄ¶þÔª¹ãÒåÏßÐÔ»Ø¹é¿ªÊ¼£ºÄ¬ÈÏÇé¿öÏÂh2o.glm²ÉÓÃÒ»¸ö´øÕýÔòÏîµÄµ¯ÐÔÍøÄ£ÐÍ(Elastic Net Model)¡£
+#####################            1.å¹¿ä¹‰çº¿æ€§å›žå½’æ¨¡åž‹ (GLM)        ##################
+# è®©æˆ‘ä»¬ä»Žä¸€ä¸ªåŸºæœ¬çš„äºŒå…ƒå¹¿ä¹‰çº¿æ€§å›žå½’å¼€å§‹ï¼šé»˜è®¤æƒ…å†µä¸‹h2o.glmé‡‡ç”¨ä¸€ä¸ªå¸¦æ­£åˆ™é¡¹çš„å¼¹æ€§ç½‘æ¨¡åž‹(Elastic Net Model)ã€‚
 glm_fit1 <- h2o.glm(x = x, 
                     y = y, 
                     training_frame = train,
                     model_id = "glm_fit1",
                     family = "binomial") 
 
-# ÏÂÃæÎÒÃÇ½«Í¨¹ýÑéÖ¤¼¯À´½øÐÐÒ»Ð©×Ô¶¯µ÷²Î¹¤×÷£¬ÐèÒªÉèÖÃlambda_search = True¡£
-# ÒòÎªÎÒÃÇµÄGLMÄ£ÐÍÊÇ´øÕýÔòÏîµÄ£¬ËùÒÔÎÒÃÇÐèÒªÕÒµ½Ò»¸öºÏÊÊµÄÕýÔòÏî´óÐ¡À´·ÀÖ¹¹ýÄâºÏ¡£
-# Õâ¸öÄ£ÐÍ²ÎÊýlambdaÊÇ¿ØÖÆGLMÄ£ÐÍµÄÕýÔòÏî´óÐ¡£¬Í¨¹ýÉè¶¨lambda_search = TRUE 
-# ÎÒÃÇÄÜ×Ô¶¯ÕÒµ½Ò»¸ölambda µÄ×îÓÅÖµ£¬Õâ¸ö×Ô¶¯Ñ°ÕÒµÄ·½·¨ÊÇÍ¨¹ýÔÚÑéÖ¤¼¯ÉÏÖ¸¶¨Ò»¸ölambda,
-# ÑéÖ¤¼¯ÉÏµÄ×îÓÅlambda¼´ÎÒÃÇÒªÕÒµÄlambda¡£
+# ä¸‹é¢æˆ‘ä»¬å°†é€šè¿‡éªŒè¯é›†æ¥è¿›è¡Œä¸€äº›è‡ªåŠ¨è°ƒå‚å·¥ä½œï¼Œéœ€è¦è®¾ç½®lambda_search = Trueã€‚
+# å› ä¸ºæˆ‘ä»¬çš„GLMæ¨¡åž‹æ˜¯å¸¦æ­£åˆ™é¡¹çš„ï¼Œæ‰€ä»¥æˆ‘ä»¬éœ€è¦æ‰¾åˆ°ä¸€ä¸ªåˆé€‚çš„æ­£åˆ™é¡¹å¤§å°æ¥é˜²æ­¢è¿‡æ‹Ÿåˆã€‚
+# è¿™ä¸ªæ¨¡åž‹å‚æ•°lambdaæ˜¯æŽ§åˆ¶GLMæ¨¡åž‹çš„æ­£åˆ™é¡¹å¤§å°ï¼Œé€šè¿‡è®¾å®šlambda_search = TRUE 
+# æˆ‘ä»¬èƒ½è‡ªåŠ¨æ‰¾åˆ°ä¸€ä¸ªlambda çš„æœ€ä¼˜å€¼ï¼Œè¿™ä¸ªè‡ªåŠ¨å¯»æ‰¾çš„æ–¹æ³•æ˜¯é€šè¿‡åœ¨éªŒè¯é›†ä¸ŠæŒ‡å®šä¸€ä¸ªlambda,
+# éªŒè¯é›†ä¸Šçš„æœ€ä¼˜lambdaå³æˆ‘ä»¬è¦æ‰¾çš„lambdaã€‚
 
 glm_fit2 <- h2o.glm(x = x, 
                     y = y, 
@@ -81,33 +81,33 @@ glm_fit2 <- h2o.glm(x = x,
                     validation_frame = valid,
                     lambda_search = TRUE)
 
-# ÈÃÎÒÃÇÔÚ²âÊÔ¼¯ÉÏ¿´ÏÂ2¸öGLMÄ£ÐÍµÄ±íÏÖ£º
+# è®©æˆ‘ä»¬åœ¨æµ‹è¯•é›†ä¸Šçœ‹ä¸‹2ä¸ªGLMæ¨¡åž‹çš„è¡¨çŽ°ï¼š
 glm_perf1 <- h2o.performance(model = glm_fit1,
                              newdata = test)
 glm_perf2 <- h2o.performance(model = glm_fit2,
                              newdata = test)
 
-# Èç¹ûÄã²»ÏëÊä³öÄ£ÐÍÈ«²¿µÄÆÀ²â¶ÔÏó£¬ÎÒÃÇÒ²Ö»Êä³öÄãÏëÒªµÄÄÇ¸öÆÀ²â
+# å¦‚æžœä½ ä¸æƒ³è¾“å‡ºæ¨¡åž‹å…¨éƒ¨çš„è¯„æµ‹å¯¹è±¡ï¼Œæˆ‘ä»¬ä¹Ÿåªè¾“å‡ºä½ æƒ³è¦çš„é‚£ä¸ªè¯„æµ‹
 h2o.auc(glm_perf1)  
 h2o.auc(glm_perf2)
-# ±È½Ï²âÊÔ¼¯ÑµÁ·¼¯ÑéÖ¤¼¯ÉÏµÄAUC
+# æ¯”è¾ƒæµ‹è¯•é›†è®­ç»ƒé›†éªŒè¯é›†ä¸Šçš„AUC
 h2o.auc(glm_fit2, train = TRUE)  
 h2o.auc(glm_fit2, valid = TRUE)  
 glm_fit2@model$validation_metrics
 
-#####################            2.Ëæ»úÉ­ÁÖÄ£ÐÍ(RF)        ##################
-# H2OµÄËæ»úÉ­ÁÖËã·¨ÊµÏÖÁË±ê×¼Ëæ»úÉ­ÁÖËã·¨µÄ·Ö²¼Ê½°æ±¾ºÍ±äÁ¿ÖØÒªÐÔµÄ¶ÈÁ¿£¬
-# Ê×ÏÈÎÒÃÇÊ¹ÓÃÒ»¸öÄ¬ÈÏ²ÎÊýÀ´ÑµÁ·Ò»¸ö»ù´¡µÄËæ»úÉ­ÁÖÄ£ÐÍ¡£Ëæ»úÉ­ÁÖÄ£ÐÍ½«´ÓÒò±äÁ¿±àÂëÍÆ¶ÏÒò±äÁ¿·Ö²¼¡£
+#####################            2.éšæœºæ£®æž—æ¨¡åž‹(RF)        ##################
+# H2Oçš„éšæœºæ£®æž—ç®—æ³•å®žçŽ°äº†æ ‡å‡†éšæœºæ£®æž—ç®—æ³•çš„åˆ†å¸ƒå¼ç‰ˆæœ¬å’Œå˜é‡é‡è¦æ€§çš„åº¦é‡ï¼Œ
+# é¦–å…ˆæˆ‘ä»¬ä½¿ç”¨ä¸€ä¸ªé»˜è®¤å‚æ•°æ¥è®­ç»ƒä¸€ä¸ªåŸºç¡€çš„éšæœºæ£®æž—æ¨¡åž‹ã€‚éšæœºæ£®æž—æ¨¡åž‹å°†ä»Žå› å˜é‡ç¼–ç æŽ¨æ–­å› å˜é‡åˆ†å¸ƒã€‚
 rf_fit1 <- h2o.randomForest(x = x,
                             y = y,
                             training_frame = train,
                             model_id = "rf_fit1",
-                            seed = 1) # ÉèÖÃËæ»úÊýÒÔ±ã½á¹û¸´ÏÖ.
-# ÏÂÃæÎÒÃÇÍ¨¹ýÉèÖÃ²ÎÊýntrees = 100À´Ôö¼ÓÊ÷µÄ´óÐ¡£¬ÔÚH2OÖÐÊ÷µÄÄ¬ÈÏ´óÐ¡Îª50¡£
-# Í¨³£À´ËµÔö¼ÓÊ÷µÄ´óÐ¡RFµÄ±íÏÖ»á¸üºÃ¡£Ïà±È½ÏGBMÄ£ÐÍ£¬RFÍ¨³£¸ü¼Ó²»Ò×¹ýÄâºÏ¡£
-# ÔÚÏÂÃæµÄGBMÀý×ÓÖÐÄã½«»á¿´µ½ÎÒÃÇÐèÒª¶îÍâµÄÉèÖÃearly stoppingÀ´·ÀÖ¹¹ýÄâºÏ¡£
+                            seed = 1) # è®¾ç½®éšæœºæ•°ä»¥ä¾¿ç»“æžœå¤çŽ°.
+# ä¸‹é¢æˆ‘ä»¬é€šè¿‡è®¾ç½®å‚æ•°ntrees = 100æ¥å¢žåŠ æ ‘çš„å¤§å°ï¼Œåœ¨H2Oä¸­æ ‘çš„é»˜è®¤å¤§å°ä¸º50ã€‚
+# é€šå¸¸æ¥è¯´å¢žåŠ æ ‘çš„å¤§å°RFçš„è¡¨çŽ°ä¼šæ›´å¥½ã€‚ç›¸æ¯”è¾ƒGBMæ¨¡åž‹ï¼ŒRFé€šå¸¸æ›´åŠ ä¸æ˜“è¿‡æ‹Ÿåˆã€‚
+# åœ¨ä¸‹é¢çš„GBMä¾‹å­ä¸­ä½ å°†ä¼šçœ‹åˆ°æˆ‘ä»¬éœ€è¦é¢å¤–çš„è®¾ç½®early stoppingæ¥é˜²æ­¢è¿‡æ‹Ÿåˆã€‚
 
-#µ±²ÎÊýstopping_rounds > 0Ê±£¬¼ìÑé¼¯Ê¹ÓÃvalid
+#å½“å‚æ•°stopping_rounds > 0æ—¶ï¼Œæ£€éªŒé›†ä½¿ç”¨valid
 rf_fit2 <- h2o.randomForest(x = x,
                             y = y,
                             training_frame = train,
@@ -115,7 +115,7 @@ rf_fit2 <- h2o.randomForest(x = x,
                             ntrees = 100,
                             seed = 1)
 
-# ±È½Ï2¸öRFÄ£ÐÍµÄÐÔÄÜ
+# æ¯”è¾ƒ2ä¸ªRFæ¨¡åž‹çš„æ€§èƒ½
 rf_perf1 <- h2o.performance(model = rf_fit1,
                             newdata = test)
 rf_perf2 <- h2o.performance(model = rf_fit2,
@@ -123,13 +123,13 @@ rf_perf2 <- h2o.performance(model = rf_fit2,
 rf_perf1
 rf_perf2
 
-# ÌáÈ¡²âÊÔ¼¯AUC
+# æå–æµ‹è¯•é›†AUC
 h2o.auc(rf_perf1)  
 h2o.auc(rf_perf2)
 
-# ÓÐÊ±ÎÒÃÇ»á²»Éè¶¨ÑéÖ¤¼¯£¬¶øÖ±½ÓÊ¹ÓÃ½»²æÑéÖ¤À´¿´Ä£ÐÍµÄ±íÏÖ¡£
-# ÏÂÃæÎÒÃÇ½«Ê¹ÓÃËæ»úÉ­ÁÖ×÷ÎªÀý×Ó£¬À´Õ¹Ê¾Ê¹ÓÃH2O½øÐÐ½»²æÑéÖ¤¡£Äã²»ÐèÒª×Ô¶¨Òå´úÂë»òÑ­»·£¬
-# ÄúÖ»ÐèÔÚnfolds²ÎÊýÖÐÖ¸¶¨ËùÐèÕÛµÄÊýÁ¿¡£×¢Òâk-ÕÛ½»²æÑéÖ¤½«»áÑµÁ·k¸öÄ£ÐÍ£¬¹ÊÊ±¼äÊÇÔ­À´¶îk±¶£º
+# æœ‰æ—¶æˆ‘ä»¬ä¼šä¸è®¾å®šéªŒè¯é›†ï¼Œè€Œç›´æŽ¥ä½¿ç”¨äº¤å‰éªŒè¯æ¥çœ‹æ¨¡åž‹çš„è¡¨çŽ°ã€‚
+# ä¸‹é¢æˆ‘ä»¬å°†ä½¿ç”¨éšæœºæ£®æž—ä½œä¸ºä¾‹å­ï¼Œæ¥å±•ç¤ºä½¿ç”¨H2Oè¿›è¡Œäº¤å‰éªŒè¯ã€‚ä½ ä¸éœ€è¦è‡ªå®šä¹‰ä»£ç æˆ–å¾ªçŽ¯ï¼Œ
+# æ‚¨åªéœ€åœ¨nfoldså‚æ•°ä¸­æŒ‡å®šæ‰€éœ€æŠ˜çš„æ•°é‡ã€‚æ³¨æ„k-æŠ˜äº¤å‰éªŒè¯å°†ä¼šè®­ç»ƒkä¸ªæ¨¡åž‹ï¼Œæ•…æ—¶é—´æ˜¯åŽŸæ¥é¢kå€ï¼š
 rf_fit3 <- h2o.randomForest(x = x,
                             y = y,
                             training_frame = train,
@@ -137,22 +137,22 @@ rf_fit3 <- h2o.randomForest(x = x,
                             seed = 1,
                             nfolds = 5) 
 
-# ÆÀ¹À½»²æÑµÁ·µÄAUC
+# è¯„ä¼°äº¤å‰è®­ç»ƒçš„AUC
 h2o.auc(rf_fit3, xval = TRUE)
 
 
 #####################           3. Gradient Boosting Machine(gbdt/gbm)      ##################
-# H2OµÄGBMÌá¹©ÁËÒ»¸öËæ»úGBM,Ïò½ÏÔ­Ê¼µÄGBM»áÓÐÒ»µãÐÔÄÜÉÏµÄÌáÉý¡£ÏÖÔÚÎÒÃÇÀ´ÑµÁ·Ò»¸ö»ù´¡µÄGBMÄ£ÐÍ¡£
-# Èç¹ûÃ»ÓÐÍ¨¹ýdistribution²ÎÊýÃ÷È·Ö¸¶¨£¬ÔòGBMÄ£ÐÍ½«´ÓÒò±äÁ¿±àÂëÍÆ¶ÏÒò±äÁ¿·Ö²¼¡£
+# H2Oçš„GBMæä¾›äº†ä¸€ä¸ªéšæœºGBM,å‘è¾ƒåŽŸå§‹çš„GBMä¼šæœ‰ä¸€ç‚¹æ€§èƒ½ä¸Šçš„æå‡ã€‚çŽ°åœ¨æˆ‘ä»¬æ¥è®­ç»ƒä¸€ä¸ªåŸºç¡€çš„GBMæ¨¡åž‹ã€‚
+# å¦‚æžœæ²¡æœ‰é€šè¿‡distributionå‚æ•°æ˜Žç¡®æŒ‡å®šï¼Œåˆ™GBMæ¨¡åž‹å°†ä»Žå› å˜é‡ç¼–ç æŽ¨æ–­å› å˜é‡åˆ†å¸ƒã€‚
 gbm_fit1 <- h2o.gbm(x = x,
                     y = y,
                     training_frame = train,
                     model_id = "gbm_fit1",
-                    seed = 1) # ÉèÖÃËæ»úÊýÒÔ±ã½á¹û¸´ÏÖ.
-# ÏÂÃæÎÒÃÇ½«Í¨¹ýÉèÖÃntrees=500À´Ôö¼ÓGBMÖÐÊ÷µÄÊýÁ¿¡£H2OÖÐÄ¬ÈÏÊ÷µÄÊýÁ¿Îª50£¬
-# ËùÒÔÕâ´ÎGBMµÄÔËÐÐÊ±¼ä»áÊÇÄ¬ÈÏÇé¿öµÄ10±¶¡£Ôö¼ÓÊ÷µÄ¸öÊýÊÇÍ¨³£»áÌá¸ßÄ£ÐÍµÄÐÔÄÜ£¬
-# µ«ÊÇÄã±ØÐëÐ¡ÐÄ£¬Ê¹ÓÃÄÇÃ´¶àÊ÷ÓÐ¿ÉÄÜ»áµ¼ÖÂ¹ýÄâºÏ¡£Äã¿ÉÒÔÍ¨¹ýÉèÖÃearly stoppingÀ´×Ô¶¯Ñ°ÕÒ×îÓÅµÄÊ÷µÄ¸öÊý¡£
-# ÔÚºóÃæµÄÀý×ÓÖÐÎÒÃÇ»áÌÖÂÛearly stopping¡£
+                    seed = 1) # è®¾ç½®éšæœºæ•°ä»¥ä¾¿ç»“æžœå¤çŽ°.
+# ä¸‹é¢æˆ‘ä»¬å°†é€šè¿‡è®¾ç½®ntrees=500æ¥å¢žåŠ GBMä¸­æ ‘çš„æ•°é‡ã€‚H2Oä¸­é»˜è®¤æ ‘çš„æ•°é‡ä¸º50ï¼Œ
+# æ‰€ä»¥è¿™æ¬¡GBMçš„è¿è¡Œæ—¶é—´ä¼šæ˜¯é»˜è®¤æƒ…å†µçš„10å€ã€‚å¢žåŠ æ ‘çš„ä¸ªæ•°æ˜¯é€šå¸¸ä¼šæé«˜æ¨¡åž‹çš„æ€§èƒ½ï¼Œ
+# ä½†æ˜¯ä½ å¿…é¡»å°å¿ƒï¼Œä½¿ç”¨é‚£ä¹ˆå¤šæ ‘æœ‰å¯èƒ½ä¼šå¯¼è‡´è¿‡æ‹Ÿåˆã€‚ä½ å¯ä»¥é€šè¿‡è®¾ç½®early stoppingæ¥è‡ªåŠ¨å¯»æ‰¾æœ€ä¼˜çš„æ ‘çš„ä¸ªæ•°ã€‚
+# åœ¨åŽé¢çš„ä¾‹å­ä¸­æˆ‘ä»¬ä¼šè®¨è®ºearly stoppingã€‚
 
 gbm_fit2 <- h2o.gbm(x = x,
                     y = y,
@@ -160,14 +160,14 @@ gbm_fit2 <- h2o.gbm(x = x,
                     model_id = "gbm_fit2", 
                     ntrees = 500,
                     seed = 1)
-# ÏÂÃæÎÒÃÇÈÔÈ»»áÉèÖÃntrees = 500£¬µ«Õâ´ÎÎÒÃÇ»áÉèÖÃearly stoppingÀ´·ÀÖ¹¹ýÄâºÏ¡£
-# ËùÓÐµÄH2OËã·¨¶¼Ìá¹©early stoppingÈ»¶øÔÚÄ¬ÈÏÇé¿öÏÂÊÇ²»ÆôÓÃµÄ(³ýÁËÉî¶ÈÑ§Ï°Ëã·¨)¡£
-# ÕâÀïÓÐ¼¸¸ö²ÎÊýÉèÖÃÀ´¿ØÖÆearly stopping£¬
-# ËùÓÐ²ÎÊý¹²ÓÐÈçÏÂ3¸ö²ÎÊý£ºstopping_rounds, stopping_metricÒÔ¼°stopping_tolerance¡£
-# stopping_metric²ÎÊýÊÇÄãµÄÆÀ²âº¯Êý£¬ÔÚÕâÀïÎÒÃÇÊ¹ÓÃAUC¡£score_tree_interval²ÎÊýÊÇËæ»úÉ­ÁÖºÍGBMµÄÌØÓÐ²ÎÊý¡£
-# ÉèÖÃscore_tree_interval = 5½«ÔÚÃ¿Îå¿ÃÊ÷Ö®ºó¼ÆËãµÃ·Ö¡£
-# ÎÒÃÇÏÂÃæÉèÖÃµÄ²ÎÊýÖ¸¶¨Ä£ÐÍ½«ÔÚÈý´ÎÆÀ·Ö¼ä¸ôºóÍ£Ö¹ÑµÁ·£¬ÈôAUCÔö¼ÓÃ»ÓÐ³¬¹ý0.0005¡£
-# ÓÉÓÚÎÒÃÇÖ¸¶¨ÁËÒ»¸öÑéÖ¤¼¯£¬ËùÒÔ½«ÔÚÑéÖ¤¼¯ÉÏ¼ÆËãAUCµÄstopping_tolerance£¬¶ø²»ÊÇÑµÁ·¼¯AUC¡£
+# ä¸‹é¢æˆ‘ä»¬ä»ç„¶ä¼šè®¾ç½®ntrees = 500ï¼Œä½†è¿™æ¬¡æˆ‘ä»¬ä¼šè®¾ç½®early stoppingæ¥é˜²æ­¢è¿‡æ‹Ÿåˆã€‚
+# æ‰€æœ‰çš„H2Oç®—æ³•éƒ½æä¾›early stoppingç„¶è€Œåœ¨é»˜è®¤æƒ…å†µä¸‹æ˜¯ä¸å¯ç”¨çš„(é™¤äº†æ·±åº¦å­¦ä¹ ç®—æ³•)ã€‚
+# è¿™é‡Œæœ‰å‡ ä¸ªå‚æ•°è®¾ç½®æ¥æŽ§åˆ¶early stoppingï¼Œ
+# æ‰€æœ‰å‚æ•°å…±æœ‰å¦‚ä¸‹3ä¸ªå‚æ•°ï¼šstopping_rounds, stopping_metricä»¥åŠstopping_toleranceã€‚
+# stopping_metricå‚æ•°æ˜¯ä½ çš„è¯„æµ‹å‡½æ•°ï¼Œåœ¨è¿™é‡Œæˆ‘ä»¬ä½¿ç”¨AUCã€‚score_tree_intervalå‚æ•°æ˜¯éšæœºæ£®æž—å’ŒGBMçš„ç‰¹æœ‰å‚æ•°ã€‚
+# è®¾ç½®score_tree_interval = 5å°†åœ¨æ¯äº”æ£µæ ‘ä¹‹åŽè®¡ç®—å¾—åˆ†ã€‚
+# æˆ‘ä»¬ä¸‹é¢è®¾ç½®çš„å‚æ•°æŒ‡å®šæ¨¡åž‹å°†åœ¨ä¸‰æ¬¡è¯„åˆ†é—´éš”åŽåœæ­¢è®­ç»ƒï¼Œè‹¥AUCå¢žåŠ æ²¡æœ‰è¶…è¿‡0.0005ã€‚
+# ç”±äºŽæˆ‘ä»¬æŒ‡å®šäº†ä¸€ä¸ªéªŒè¯é›†ï¼Œæ‰€ä»¥å°†åœ¨éªŒè¯é›†ä¸Šè®¡ç®—AUCçš„stopping_toleranceï¼Œè€Œä¸æ˜¯è®­ç»ƒé›†AUCã€‚
 
 gbm_fit3 <- h2o.gbm(x = x,
                     y = y,
@@ -176,14 +176,14 @@ gbm_fit3 <- h2o.gbm(x = x,
                     validation_frame = valid,
                     ntrees = 500,
                     
-                    #ÓÃÓÚearly stopping²ÎÊý
+                    #ç”¨äºŽearly stoppingå‚æ•°
                     score_tree_interval = 5,      
                     stopping_rounds = 3,  
                     stopping_metric = "AUC",      
                     stopping_tolerance = 0.0005,
                     seed = 1)                     
 
-# GBMÐÔÄÜ±È½Ï
+# GBMæ€§èƒ½æ¯”è¾ƒ
 gbm_perf1 <- h2o.performance(model = gbm_fit1,
                              newdata = test)
 gbm_perf2 <- h2o.performance(model = gbm_fit2,
@@ -194,22 +194,22 @@ gbm_perf1
 gbm_perf2
 gbm_perf3                                         
 
-# ÌáÈ¡²âÊÔ¼¯AUC
+# æå–æµ‹è¯•é›†AUC
 h2o.auc(gbm_perf1)  
 h2o.auc(gbm_perf2)  
 h2o.auc(gbm_perf3)
-# ÎªÁË¼ì²éÆÀ·ÖÀúÊ·£¬ÇëÔÚÒÑ¾­ÑµÁ·µÄÄ£ÐÍÉÏÊ¹ÓÃscoring_history·½·¨£¬Èô²»Ö¸¶¨£¬
-# Ëü»á¼ÆËã²»Í¬¼ä¸ôµÄµÃ·Ö£¬Çë²ÎÔÄÏÂÃæh2o.scoreHistory()¡£gbm_fit2Ö»Ê¹ÓÃÁËÑµÁ·¼¯Ã»ÓÐÊ¹ÓÃÑéÖ¤¼¯£¬
-# ¹ÊÖ»¶ÔÑµÁ·¼¯À´¼ÆËãÄ£ÐÍµÄÀúÊ·µÃ·Ö¡£Ö»ÓÐÊ¹ÓÃÑµÁ·¼¯£¨ÎÞÑéÖ¤¼¯£©¶Ô¡°gbm_fit2¡±½øÐÐÑµÁ·£¬Òò´Ë½öÎªÑµÁ·¼¯¼¨Ð§Ö¸±ê¼ÆËãµÃ·Ö¼ÇÂ¼¡£
+# ä¸ºäº†æ£€æŸ¥è¯„åˆ†åŽ†å²ï¼Œè¯·åœ¨å·²ç»è®­ç»ƒçš„æ¨¡åž‹ä¸Šä½¿ç”¨scoring_historyæ–¹æ³•ï¼Œè‹¥ä¸æŒ‡å®šï¼Œ
+# å®ƒä¼šè®¡ç®—ä¸åŒé—´éš”çš„å¾—åˆ†ï¼Œè¯·å‚é˜…ä¸‹é¢h2o.scoreHistory()ã€‚gbm_fit2åªä½¿ç”¨äº†è®­ç»ƒé›†æ²¡æœ‰ä½¿ç”¨éªŒè¯é›†ï¼Œ
+# æ•…åªå¯¹è®­ç»ƒé›†æ¥è®¡ç®—æ¨¡åž‹çš„åŽ†å²å¾—åˆ†ã€‚åªæœ‰ä½¿ç”¨è®­ç»ƒé›†ï¼ˆæ— éªŒè¯é›†ï¼‰å¯¹â€œgbm_fit2â€è¿›è¡Œè®­ç»ƒï¼Œå› æ­¤ä»…ä¸ºè®­ç»ƒé›†ç»©æ•ˆæŒ‡æ ‡è®¡ç®—å¾—åˆ†è®°å½•ã€‚
 
 h2o.scoreHistory(gbm_fit2)
-# µ±Ê¹ÓÃearly stoppingÊ±£¬ÎÒÃÇ·¢ÏÖÎÒÃÇÖ»Ê¹ÓÃÁË95¿ÃÊ÷¶ø²»ÊÇÈ«²¿µÄ500¿Ã¡£
-# ÓÉÓÚÎÒÃÇÔÚgbm_fit3ÖÐÊ¹ÓÃÁËÑéÖ¤¼¯£¬ÑµÁ·¼¯ÓëÑéÖ¤¼¯µÄÀúÊ·µÃ·Ö¶¼±»´æ´¢ÁËÏÂÀ´¡£
-# ÎÒÃÇÀ´¹Û²ìÑéÖ¤¼¯µÄAUC£¬ÒÔÈ·ÈÏstopping toleranceÊÇ·ñ±»Ç¿ÖÆÖ´ÐÐ¡£
+# å½“ä½¿ç”¨early stoppingæ—¶ï¼Œæˆ‘ä»¬å‘çŽ°æˆ‘ä»¬åªä½¿ç”¨äº†95æ£µæ ‘è€Œä¸æ˜¯å…¨éƒ¨çš„500æ£µã€‚
+# ç”±äºŽæˆ‘ä»¬åœ¨gbm_fit3ä¸­ä½¿ç”¨äº†éªŒè¯é›†ï¼Œè®­ç»ƒé›†ä¸ŽéªŒè¯é›†çš„åŽ†å²å¾—åˆ†éƒ½è¢«å­˜å‚¨äº†ä¸‹æ¥ã€‚
+# æˆ‘ä»¬æ¥è§‚å¯ŸéªŒè¯é›†çš„AUCï¼Œä»¥ç¡®è®¤stopping toleranceæ˜¯å¦è¢«å¼ºåˆ¶æ‰§è¡Œã€‚
 
 h2o.scoreHistory(gbm_fit3)
 
-# ²é¿´ÏÂÕâ¸öÄ£ÐÍµÄÀúÊ·µÃ·Ö
+# æŸ¥çœ‹ä¸‹è¿™ä¸ªæ¨¡åž‹çš„åŽ†å²å¾—åˆ†
 plot(gbm_fit3, timestep = "number_of_trees", 
      metric = "AUC")
 plot(gbm_fit3, timestep = "number_of_trees", 
@@ -218,28 +218,28 @@ plot(gbm_fit3, timestep = "number_of_trees",
 
 
 
-#####################          4.Éî¶ÈÑ§Ï°(DL)     ##################
+#####################          4.æ·±åº¦å­¦ä¹ (DL)     ##################
 
-# H2OµÄÉî¶ÈÑ§Ï°Ëã·¨ÊÇ¶à²ãÇ°À¡ÈË¹¤Éñ¾­ÍøÂç£¬ËüÒ²¿ÉÒÔÓÃÓÚÑµÁ·×Ô¶¯±àÂëÆ÷¡£ 
-# ÔÚÕâ¸öÀý×ÓÖÐ£¬ÎÒÃÇ½«ÑµÁ·Ò»¸ö±ê×¼µÄ¼à¶½Ô¤²âÄ£ÐÍ¡£
-# Ê×ÏÈÎÒÃÇ½«Ê¹ÓÃÄ¬ÈÏ²ÎÊýÑµÁ·Ò»¸ö»ù´¡Éî¶ÈÑ§Ï°Ä£ÐÍ£¬Èç¹ûÃ»ÓÐÍ¨¹ýdistribution²ÎÊýÃ÷È·Ö¸¶¨£¬
-# ÔòDLÄ£ÐÍ½«´ÓÒò±äÁ¿±àÂëÍÆ¶ÏÒò±äÁ¿·Ö²¼¡£ÈôH2OµÄDLËã·¨ÔËÐÐÔÚ¶àºËÉÏ£¬ÄÇÃ´H2OµÄDLËã·¨½«ÎÞ·¨ÖØÏÖ¡£
-# ËùÒÔÔÚÕâ¸öÀý×ÓÖÐ£¬ÏÂÃæµÄÐÔÄÜÖ¸±ê¿ÉÄÜÓëÄãÔÚ»úÆ÷ÉÏ¿´µ½µÄ²»Í¬¡£
-# ÔÚH2OµÄDLÖÐ£¬Ä¬ÈÏÇé¿öÏÂÆôÓÃearly stopping£¬ËùÒÔÏÂÃæµÄÑµÁ·¼¯ÖÐ½«»áÄ¬ÈÏÊ¹ÓÃearly stopping²ÎÊýÀ´ ½øÐÐearly stopping¡£
+# H2Oçš„æ·±åº¦å­¦ä¹ ç®—æ³•æ˜¯å¤šå±‚å‰é¦ˆäººå·¥ç¥žç»ç½‘ç»œï¼Œå®ƒä¹Ÿå¯ä»¥ç”¨äºŽè®­ç»ƒè‡ªåŠ¨ç¼–ç å™¨ã€‚ 
+# åœ¨è¿™ä¸ªä¾‹å­ä¸­ï¼Œæˆ‘ä»¬å°†è®­ç»ƒä¸€ä¸ªæ ‡å‡†çš„ç›‘ç£é¢„æµ‹æ¨¡åž‹ã€‚
+# é¦–å…ˆæˆ‘ä»¬å°†ä½¿ç”¨é»˜è®¤å‚æ•°è®­ç»ƒä¸€ä¸ªåŸºç¡€æ·±åº¦å­¦ä¹ æ¨¡åž‹ï¼Œå¦‚æžœæ²¡æœ‰é€šè¿‡distributionå‚æ•°æ˜Žç¡®æŒ‡å®šï¼Œ
+# åˆ™DLæ¨¡åž‹å°†ä»Žå› å˜é‡ç¼–ç æŽ¨æ–­å› å˜é‡åˆ†å¸ƒã€‚è‹¥H2Oçš„DLç®—æ³•è¿è¡Œåœ¨å¤šæ ¸ä¸Šï¼Œé‚£ä¹ˆH2Oçš„DLç®—æ³•å°†æ— æ³•é‡çŽ°ã€‚
+# æ‰€ä»¥åœ¨è¿™ä¸ªä¾‹å­ä¸­ï¼Œä¸‹é¢çš„æ€§èƒ½æŒ‡æ ‡å¯èƒ½ä¸Žä½ åœ¨æœºå™¨ä¸Šçœ‹åˆ°çš„ä¸åŒã€‚
+# åœ¨H2Oçš„DLä¸­ï¼Œé»˜è®¤æƒ…å†µä¸‹å¯ç”¨early stoppingï¼Œæ‰€ä»¥ä¸‹é¢çš„è®­ç»ƒé›†ä¸­å°†ä¼šé»˜è®¤ä½¿ç”¨early stoppingå‚æ•°æ¥ è¿›è¡Œearly stoppingã€‚
 
 dl_fit1 <- h2o.deeplearning(x = x,
                             y = y,
                             training_frame = train,
                             model_id = "dl_fit1",
                             seed = 1)
-# ÓÃÐÂµÄ½á¹¹ºÍ¸ü¶àµÄepochÑµÁ·DL¡£ÏÂÃæÎÒÃÇÍ¨¹ýÉèÖÃepochs=20À´Ôö¼Óepochs,Ä¬ÈÏÎª10¡£
-# Í¨³£À´ËµÔö¼ÓepochsÉî¶ÈÉñ¾­ÍøÂçµÄ±íÏÖ»á¸üºÃ¡£Ïà±È½ÏGBMÄ£ÐÍ£¬RFÍ¨³£¸ü¼Ó²»Ò×¹ýÄâºÏ¡£
-# ÔÚÏÂÃæµÄGBMÀý×ÓÖÐÄã½«»á¿´µ½ÎÒÃÇÐèÒª¶îÍâµÄÉèÖÃearly stoppingÀ´·ÀÖ¹¹ýÄâºÏ¡£
-# µ«ÊÇÄã±ØÐëÐ¡ÐÄ£¬²»Òª¹ýÄâºÏÄãµÄÊý¾Ý¡£Äã¿ÉÒÔÍ¨¹ýÉèÖÃ
+# ç”¨æ–°çš„ç»“æž„å’Œæ›´å¤šçš„epochè®­ç»ƒDLã€‚ä¸‹é¢æˆ‘ä»¬é€šè¿‡è®¾ç½®epochs=20æ¥å¢žåŠ epochs,é»˜è®¤ä¸º10ã€‚
+# é€šå¸¸æ¥è¯´å¢žåŠ epochsæ·±åº¦ç¥žç»ç½‘ç»œçš„è¡¨çŽ°ä¼šæ›´å¥½ã€‚ç›¸æ¯”è¾ƒGBMæ¨¡åž‹ï¼ŒRFé€šå¸¸æ›´åŠ ä¸æ˜“è¿‡æ‹Ÿåˆã€‚
+# åœ¨ä¸‹é¢çš„GBMä¾‹å­ä¸­ä½ å°†ä¼šçœ‹åˆ°æˆ‘ä»¬éœ€è¦é¢å¤–çš„è®¾ç½®early stoppingæ¥é˜²æ­¢è¿‡æ‹Ÿåˆã€‚
+# ä½†æ˜¯ä½ å¿…é¡»å°å¿ƒï¼Œä¸è¦è¿‡æ‹Ÿåˆä½ çš„æ•°æ®ã€‚ä½ å¯ä»¥é€šè¿‡è®¾ç½®
 # 
-# early stoppingÀ´×Ô¶¯Ñ°ÕÒ×îÓÅµÄepochsÊý¡£
-# ÓëÆäËûH2OÖÐµÄËã·¨²»Í¬£¬H2OµÄÉî¶ÈÑ§Ï°Ëã·¨»áÄ¬ÈÏÊ¹ÓÃearly stopping 
-# ËùÒÔÎªÁË±È½ÏÎÒÃÇÏÈ²»Ê¹ÓÃ early stopping£¬Í¨¹ýÉèÖÃstopping_rounds=0¡£
+# early stoppingæ¥è‡ªåŠ¨å¯»æ‰¾æœ€ä¼˜çš„epochsæ•°ã€‚
+# ä¸Žå…¶ä»–H2Oä¸­çš„ç®—æ³•ä¸åŒï¼ŒH2Oçš„æ·±åº¦å­¦ä¹ ç®—æ³•ä¼šé»˜è®¤ä½¿ç”¨early stopping 
+# æ‰€ä»¥ä¸ºäº†æ¯”è¾ƒæˆ‘ä»¬å…ˆä¸ä½¿ç”¨ early stoppingï¼Œé€šè¿‡è®¾ç½®stopping_rounds=0ã€‚
 
 dl_fit2 <- h2o.deeplearning(x = x,
                             y = y,
@@ -248,11 +248,11 @@ dl_fit2 <- h2o.deeplearning(x = x,
                             epochs = 20,
                             hidden= c(10,10),
                             
-                            # ½ûÓÃ early stopping
+                            # ç¦ç”¨ early stopping
                             stopping_rounds = 0, 
                             seed = 1)
-# Ê¹ÓÃ early stoppingÀ´ÑµÁ·DLÄ£ÐÍ¡£Õâ´ÎÎÒÃÇ»áÊ¹ÓÃ¸údl_fit2ÏàÍ¬µÄ²ÎÊý£¬²¢ÔÚÕâ»ù´¡ÉÏ¼ÓÉÏearly stopping¡£
-# Í¨¹ýÑéÖ¤¼¯À´½øÐÐearly stopping¡£
+# ä½¿ç”¨ early stoppingæ¥è®­ç»ƒDLæ¨¡åž‹ã€‚è¿™æ¬¡æˆ‘ä»¬ä¼šä½¿ç”¨è·Ÿdl_fit2ç›¸åŒçš„å‚æ•°ï¼Œå¹¶åœ¨è¿™åŸºç¡€ä¸ŠåŠ ä¸Šearly stoppingã€‚
+# é€šè¿‡éªŒè¯é›†æ¥è¿›è¡Œearly stoppingã€‚
 
 dl_fit3 <- h2o.deeplearning(x = x,
                             y = y,
@@ -260,10 +260,10 @@ dl_fit3 <- h2o.deeplearning(x = x,
                             model_id = "dl_fit3",
                             epochs = 20,
                             
-                            #Éî¶ÈÑ§Ï°ÖÐÄ¬ÈÏÊ¹ÓÃearly stopping
+                            #æ·±åº¦å­¦ä¹ ä¸­é»˜è®¤ä½¿ç”¨early stopping
                             validation_frame = valid,     
                             
-                            #ÒÔÏÂ²ÎÊýÓÃÓÚ²ÎÊýearly stopping
+                            #ä»¥ä¸‹å‚æ•°ç”¨äºŽå‚æ•°early stopping
                             hidden = c(10,10),
                             score_interval = 1,           
                             stopping_rounds = 3,
@@ -271,7 +271,7 @@ dl_fit3 <- h2o.deeplearning(x = x,
                             stopping_tolerance = 0.0005, 
                             seed = 1)   
 
-#±È½ÏÒ»ÏÂÕâ3¸öÄ£ÐÍ
+#æ¯”è¾ƒä¸€ä¸‹è¿™3ä¸ªæ¨¡åž‹
 dl_perf1 <- h2o.performance(model = dl_fit1,
                             newdata = test)
 dl_perf2 <- h2o.performance(model = dl_fit2,
@@ -282,28 +282,28 @@ dl_perf1
 dl_perf2
 dl_perf3
 
-# ÌáÈ¡ÑéÖ¤¼¯AUCh2o.auc(dl_perf1)  
+# æå–éªŒè¯é›†AUCh2o.auc(dl_perf1)  
 h2o.auc(dl_perf2)  
 h2o.auc(dl_perf3)
 
-# ¼ÆËãÀúÊ·µÃ·Ö
+# è®¡ç®—åŽ†å²å¾—åˆ†
 h2o.scoreHistory(dl_fit3)
 
-# ²é¿´µÚÈý¸öDLÄ£ÐÍµÄÀúÊ·µÃ·Ö
+# æŸ¥çœ‹ç¬¬ä¸‰ä¸ªDLæ¨¡åž‹çš„åŽ†å²å¾—åˆ†
 plot(dl_fit3, timestep = "epochs", metric = "AUC")
 
-#####################           5. ÆÓËØ±´Ò¶Ë¹(NB)      ##################
+#####################           5. æœ´ç´ è´å¶æ–¯(NB)      ##################
 
-# ÆÓËØ±´Ò¶Ë¹Ëã·¨(NB)ÔÚÐ§¹ûÉÏÍ¨³£»á±ÈRFÓëGBM²î£¬µ«ËüÈÔÈ»ÊÇÒ»¸öÊÜ»¶Ó­µÄËã·¨£¬
-# ÓÈÆäÔÚÎÄ±¾ÁìÓò(ÀýÈç£¬µ±ÄúµÄÊäÈëÎÄ±¾±»±àÂëÎª¡°´Ê´ü¡±Ê±"Bag of Words")¡£
-# ÆÓËØ±´Ò¶Ë¹Ëã·¨Ö»ÄÜÓÃ×÷¶þ·ÖÀàÓë¶à·ÖÀàÈÎÎñ£¬²»ÄÜÓÃ×÷»Ø¹é¡£
-# Òò´ËÏìÓ¦±äÁ¿±ØÐëÊÇÒò×ÓÀàÐÍ£¬²»ÄÜÊÇÊýÖµÀàÐÍ¡£Ê×ÏÈÎÒÃÇÊ¹ÓÃÄ¬ÈÏ²ÎÊýÀ´ÑµÁ·Ò»¸ö»ù´¡µÄNBÄ£ÐÍ¡£
+# æœ´ç´ è´å¶æ–¯ç®—æ³•(NB)åœ¨æ•ˆæžœä¸Šé€šå¸¸ä¼šæ¯”RFä¸ŽGBMå·®ï¼Œä½†å®ƒä»ç„¶æ˜¯ä¸€ä¸ªå—æ¬¢è¿Žçš„ç®—æ³•ï¼Œ
+# å°¤å…¶åœ¨æ–‡æœ¬é¢†åŸŸ(ä¾‹å¦‚ï¼Œå½“æ‚¨çš„è¾“å…¥æ–‡æœ¬è¢«ç¼–ç ä¸ºâ€œè¯è¢‹â€æ—¶"Bag of Words")ã€‚
+# æœ´ç´ è´å¶æ–¯ç®—æ³•åªèƒ½ç”¨ä½œäºŒåˆ†ç±»ä¸Žå¤šåˆ†ç±»ä»»åŠ¡ï¼Œä¸èƒ½ç”¨ä½œå›žå½’ã€‚
+# å› æ­¤å“åº”å˜é‡å¿…é¡»æ˜¯å› å­ç±»åž‹ï¼Œä¸èƒ½æ˜¯æ•°å€¼ç±»åž‹ã€‚é¦–å…ˆæˆ‘ä»¬ä½¿ç”¨é»˜è®¤å‚æ•°æ¥è®­ç»ƒä¸€ä¸ªåŸºç¡€çš„NBæ¨¡åž‹ã€‚
 nb_fit1 <- h2o.naiveBayes(x = x,
                           y = y,
                           training_frame = train,
                           model_id = "nb_fit1")
-# ÏÂÃæÎÒÃÇÊ¹ÓÃÀ­ÆÕÀ­Ë¹Æ½»¬À´ÑµÁ·NBÄ£ÐÍ¡£ÆÓËØ±´Ò¶Ë¹Ëã·¨µÄ¼¸¸ö¿Éµ÷Ä£ÐÍ²ÎÊýÖ®Ò»ÊÇÀ­ÆÕÀ­Ë¹Æ½»¬µÄÁ¿¡£
-# Ä¬ÈÏÇé¿öÏÂ²»»áÊ¹ÓÃÀ­ÆÕÀ­Ë¹Æ½»¬¡£
+# ä¸‹é¢æˆ‘ä»¬ä½¿ç”¨æ‹‰æ™®æ‹‰æ–¯å¹³æ»‘æ¥è®­ç»ƒNBæ¨¡åž‹ã€‚æœ´ç´ è´å¶æ–¯ç®—æ³•çš„å‡ ä¸ªå¯è°ƒæ¨¡åž‹å‚æ•°ä¹‹ä¸€æ˜¯æ‹‰æ™®æ‹‰æ–¯å¹³æ»‘çš„é‡ã€‚
+# é»˜è®¤æƒ…å†µä¸‹ä¸ä¼šä½¿ç”¨æ‹‰æ™®æ‹‰æ–¯å¹³æ»‘ã€‚
 
 nb_fit2 <- h2o.naiveBayes(x = x,
                           y = y,
@@ -311,7 +311,7 @@ nb_fit2 <- h2o.naiveBayes(x = x,
                           model_id = "nb_fit2",
                           laplace = 6)
 
-# ±È½Ï2¸öNBÄ£ÐÍ
+# æ¯”è¾ƒ2ä¸ªNBæ¨¡åž‹
 nb_perf1 <- h2o.performance(model = nb_fit1,
                             newdata = test)
 nb_perf2 <- h2o.performance(model = nb_fit2,
@@ -319,7 +319,7 @@ nb_perf2 <- h2o.performance(model = nb_fit2,
 nb_perf1
 nb_perf2
 
-# ÌáÈ¡²âÊÔ¼¯ AUC
+# æå–æµ‹è¯•é›† AUC
 h2o.auc(nb_perf1)  
 h2o.auc(nb_perf2)
 
