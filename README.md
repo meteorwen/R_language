@@ -66,9 +66,13 @@
 `/usr/lib64/R/library/`
 
 多数包可以通过:<br>
-**install.packages('PACKAGE_NAME', repos = 'http://cran.rstudio.com/')**<br>
+
+    $ sudo R -e 'install.packages("ggplot2", repos = "http://cran.rstudio.com/")'
+
 的方式安装，但是有的包如Rcpp或者httpuv等还是会报无法编译的错，可以先查看:
-**yum list R-\***<br>
+
+    yum list R-\
+
 是否包含需要安装的包，如果有就直接`yum install PACKAGE_NAME`，此外也可以使用如下办法安装： 
 
     wget http://cran.r-project.org/src/contrib/Rcpp_0.11.1.tar.gz
