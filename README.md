@@ -35,7 +35,8 @@
     $ sudo yum install --nogpgcheck rstudio-server-rhel-1.1.383-x86_64.rpm
 
 ## Start Rstudio Server
-
+	
+	sudo iptables -I INPUT -p tcp --dport 8787 -j ACCEPT # 有可能防火墙未打开8787端口，需要手动开启
     #查看是否安装正确
     sudo rstudio-server verify-installation
     
@@ -47,6 +48,12 @@
     
     ## 停止
     sudo rstudio-server stop
+
+	$ sudo rstudio-server active-sessions 
+	$ sudo rstudio-server suspend-session <pid>
+	$ sudo rstudio-server suspend-all
+	$ sudo rstudio-server offline # 会给当前连接用户下线提示
+	$ sudo rstudio-server online
     
     ## 查看服务端ip地址
     ifconfig
@@ -81,3 +88,6 @@ Fedora提供了一些r软件包的选择。更有限这些软件包的选择已�
     -c "R -e \"install.packages('shiny', repos='https://cran.rstudio.com/')\""
     $ wget https://download3.rstudio.org/centos5.9/x86_64/shiny-server-1.5.6.875-rh5-x86_64.rpm
     $ sudo yum install --nogpgcheck shiny-server-1.5.6.875-rh5-x86_64.rpm
+	$ sudo start shiny-server
+	$ sudo stop shiny-server
+	$ sudo restart shiny-server # restart模式不会读取/etc/init/shiny-server.conf中的改动
