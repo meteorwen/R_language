@@ -53,18 +53,18 @@ RHadoop由以下软件包组成：<br>
 
 重要！这些环境变量只需要在调用rmr2MapReduce作业的节点上设置，如Edge节点。如果您不知道将使用哪个节点，请在每个节点上设置这些变量。另外，建议将这些环境变量添加到文件中，/etc/profile以便它们可供所有用户使用。
 
-- HADOOP_CMD：“hadoop”可执行文件的完整路径。例如：
+- HADOOP_CMD：“hadoop”可执行文件的完整路径。例如：<br>
 `
     export HADOOP_CMD=/usr/bin/hadoop
-`
-- HADOOP_STREAMING：Hadoop Streaming jar文件的完整路径。例如：
+`<br>
+- HADOOP_STREAMING：Hadoop Streaming jar文件的完整路径。例如：<br>
 `
 	export HADOOP_STREAMING=/usr/lib/hadoop/contrib/streaming/hadoop-streaming-<version>.jar
-`
-在群集中的每个节点上，执行以下操作：
+`<br>
+在群集中的每个节点上，执行以下操作：<br>
 `
 	$ wget https://github.com/RevolutionAnalytics/RHadoop/wiki/user%3Ermr%3EHome
-`
+`<br>
 ### install rhdfs (rhdfs仅安装在将运行R客户机的节点上)
 ```
 	$ yum install -y gcc-gfortran gcc gcc-c++ readline-devel libXt-devel
@@ -94,9 +94,9 @@ hdfs.init，hdfs.defaults<br>
 ```
 这个包依赖于rJava
 通过这个R包访问HDFS取决于HADOOP_CMD环境变量。HADOOP_CMD指向hadoop二进制文件的完整路径。如果这个变量没有被正确的设置，那么当这个init()函数被调用的时候，这个包会失败,例：
-
+`
  	HADOOP_CMD=/usr/bin/hadoop
-
+`<br>
 R对象可以通过函数将R对象序列化为HDFS hdfs.write。一个例子如下所示：
 ``` 
     model <- lm(...)
@@ -137,13 +137,13 @@ https://github.com/RevolutionAnalytics/RHadoop/wiki/user%3Erhbase%3EHome
 创建一个到Thrift库的符号链接，以便它可以被rhbase包加载。符号链接示例：<br>
 `
     ln -s /usr/local/lib/libthrift-0.8.0.so /usr/lib64
-`
+`<br>
 **重要！**如果以非根用户身份进行安装，则可能需要系统管理员为您执行此命令。
 
 设置PKG_CONFIG_PATH环境变量。在提示符下键入：
 `
 export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig
-`
+`<br>
 1. [下载rhbase软件包。](https://github.com/RevolutionAnalytics/RHadoop/wiki/Downloads)
 2. rhbase仅安装在将运行R客户机的节点上。
 ```
