@@ -72,7 +72,7 @@ $ wget https://github.com/RevolutionAnalytics/rhdfs/blob/master/build/rhdfs_1.0.
 RMR2 (每个跑Mapreduce 的 Nodemanager都要安装)
 $ R
 > install.packages(c('stringr',"Rcpp","Rcpp","RJSONIO","bitops","digest","functional","plyr","reshape2","caTools"),
-repos='http://cran.us.r-project.org/',dependencies=TRUE)
+lib="usr/lib64/R/library/",repos='http://cran.rstudio.com/',dependencies=TRUE)
 > install.packages("rhdfs_1.0.8.tar.gz", repos=NULL, type="source")
 ```
 #### example rhdfs
