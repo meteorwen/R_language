@@ -142,6 +142,6 @@ https://github.com/RevolutionAnalytics/RHadoop/wiki/user%3Erhbase%3EHome
 1. [下载rhbase软件包。](https://github.com/RevolutionAnalytics/RHadoop/wiki/Downloads)
 2. rhbase仅安装在将运行R客户机的节点上。
 
-    ```library(rhbase)
+    library(rhbase)
     hb.init()
-    hb.list.tables()```
+    hb.list.tables()
