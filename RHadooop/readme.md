@@ -67,13 +67,13 @@ RHadoop由以下软件包组成：<br>
 `<br>
 ### install rhdfs (rhdfs仅安装在将运行R客户机的节点上)
 ```
-	$ yum install -y gcc-gfortran gcc gcc-c++ readline-devel libXt-devel
-    $ wget https://github.com/RevolutionAnalytics/rhdfs/blob/master/build/rhdfs_1.0.8.tar.gz
-	RMR2 (每个跑Mapreduce 的 Nodemanager都要安装)
-	$ R
-	install.packages(c('stringr',"Rcpp","Rcpp","RJSONIO","bitops","digest","functional","plyr","reshape2","caTools"),
-	repos='http://cran.us.r-project.org/',dependencies=TRUE)
-    install.packages("rhdfs_1.0.8.tar.gz", repos=NULL, type="source")
+$ yum install -y gcc-gfortran gcc gcc-c++ readline-devel libXt-devel
+$ wget https://github.com/RevolutionAnalytics/rhdfs/blob/master/build/rhdfs_1.0.8.tar.gz
+RMR2 (每个跑Mapreduce 的 Nodemanager都要安装)
+$ R
+> install.packages(c('stringr',"Rcpp","Rcpp","RJSONIO","bitops","digest","functional","plyr","reshape2","caTools"),
+repos='http://cran.us.r-project.org/',dependencies=TRUE)
+> install.packages("rhdfs_1.0.8.tar.gz", repos=NULL, type="source")
 ```
 #### example rhdfs
 概述该R包提供了与Hadoop分布式文件系统的基本连接。R程序员可以浏览，读取，写入和修改存储在HDFS中的文件。以下功能是这个软件包的一部分:<br>
