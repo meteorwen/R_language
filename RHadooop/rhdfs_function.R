@@ -25,5 +25,5 @@ text <- function(p1,p2){
 }
 
 
-# hadoop dfsadmin -safemode leave         强制hdfs离开安全模式
+# sudo -uhdfs hadoop dfsadmin -safemode leave         强制hdfs离开安全模式
 # hdfs fsck -move  /   hdfs fdck -delete   删除有问题的hfds有问题的块
