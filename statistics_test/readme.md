@@ -40,6 +40,89 @@
 
 
 #### 估计总体参数
+
+##### 1.单正态总体的区间估计
+方差已知，估计均值：Z检验：
+z.test()：BSDA包，调用格式：
+
+```
+z.test(x, y = NULL, alternative = "two.sided", mu = 0, sigma.x = NULL, sigma.y = NULL, conf.level = 0.95)  
+```
+
+x,y是数值向量，默认y=NULL,即进行单样本的假设检验；
+alternative用于指定估计的置信区间，默认为双尾区间，
+less表示求置信上限，greate表示求置信下限；
+mu表示均值，默认为0，仅在假设检验中起作用；
+sigma.x和sigma.y分别指定两个样本总体的标准差；
+conf.level指定区间估计的置信水平
+simple.z.test()：UsingR包，只能进行置信区间估计，不能实现Z检验。调用格式：<br>
+
+```
+simple.z.test(x, sigma, conf.level=0.95)  
+```
+x是数据向量，sigma是已知的总体标准差，conf.level是置信度。
+方差未知，估计均值：用t检验代替Z检验：
+t.test():调用格式：
+```
+t.test(x, y = NULL, alternative=c("two sided","less","greater"), mu = 0,paired = TRUE, var.equal = FALSE, conf.level = 0.95,...) 
+```
+x，y为样本数据；alternative表示所求置信区间的类型，默认为双尾检验；mu表示均值，均值未知时不需要赋值；paired表示是否是成对检验；var.equal表示双样本的方差是否相等
+均值已知/未知，估计方差：
+根据均值已知/未知情况，用卡方分布估计方差置信区间，实际情况中均值多为未知。自行编写函数，可用以下代码实现：
+
+```
+var.conf.int=function(x,mu=Inf,alpha){  
+     n=length(x)  
+     if(mu<Inf){  
+        s2=sum((x-mu)^2)/n  
+        df=n}  
+     else{  
+        s2=var(x)  
+        df=n-1}  
+     c(df*s2/qchisq(1-alpha/2,df),df*s2/qchisq*alpha/2,df))}  
+```
+##### 2.双正态总体的区间估计
+当两总体方差已知，估计均值差μ1-μ2：
+z.test():BSDA包，调用格式同上：
+```
+z.test(x, y = NULL, alternative = "two.sided", mu = 0, sigma.x = NULL, sigma.y = NULL, conf.level = 0.95)  
+```
+当两总体方差未知但相等，估计均值差μ1-μ2：
+t.test():调用格式同上
+```
+t.test(x, y = NULL, alternative=c("two sided","less","greater"), mu = 0,paired = TRUE, var.equal = FALSE, conf.level = 0.95,...)  
+```
+当两总体方差未知且不等，估计均值差μ1-μ2：
+可用t.test(),设置方差不等，也可以自己编写函数，代码如下：
+```
+twosample.ci2=function(x,y,alpha){  
+                n1=length(x);n2=length(y)  
+               xbar=mean(x)-mean(y)  
+                S1=var(x);S2=var(y)  
+nu=(S1/n1+S2/n2)^2/(S1^2/n1^2/(n1-1)+S2^2/n2^2/(n2-1))  
+           c(xbar-z,xbar+z)}  
+```
+两总体方差比的估计：
+var.test():调用格式：
+```
+var.test(x, y, ratio = 1, alternative = c("two.sided","less","greater"), conf.level = 0.95,...)  
+```
+x,y为样本数据；ratio为原假设的方差比值；alternative设置检验类型为双尾或是单尾；conf.level为置信水平
+##### 3.比率的区间估计
+用于估计具有某个特征的个体在总体中的比例
+prop.test():调用格式：
+```
+prop.test(x, n, p = NULL, alternative = c("two.sided","less","greater"),conf.level = 0.95,correct = TRUE) 
+```
+x为具有特征的样本数；n为样本总数；p设置假设检验的原假设比率值；alternative设置检验方式；conf.level为置信水平；correct设置是否使用Yates连续修正，默认为TRUE。
+抽样比很小时，可以使用二项式检验：
+binom.test():调用格式为：
+```
+binom.test(x, n, p = 0.5, alternative = c("two.sided","less","greater"),conf.level= 0.95)  
+```
+参数代表意义与prop.test()一致。
+
+
 ##### **均值的估计（ 单个总体）**
 - 描述
     当总体数据非常庞大时很难对每一个对象进行研究， 均值的估计是根据从
@@ -108,26 +191,36 @@
     T 检验， 亦称 student t 检验（ Student's t test）， 主要用于样本含量较小（ 例
 如 n<30）， 总体标准差σ未知的正态分布资料。
 
->数据： 选择需要检验的字段
+数据： 选择需要检验的字段
 平均值： 设定假设的均值
 原假设： 选择是等于还是不小于、 不大于假设的均值
 置信水平： 设置置信水平
+```
+t.test(sleep$extra,var.equal=T,mu=0)   #mu 总体样本均值
+```
+
+
+
 ##### **T 检验（ 两个总体）**
 - 描述
     用 t 分布理论来推论差异发生的概率， 从而比较两个平均数的差异是否显
 著； 双总体 t 检验是检验两个样本平均数与其各自所代表的总体的差异是否显著。
 
-> 总体 X： 第一个总体样本字段
+总体 X： 第一个总体样本字段
 总体 Y： 第二个总体样本字段
 原假设： 假设两个总体的均值关系
 置信水平： 设置置信水平
 方差相等： 选择条件两个总体的方差是否相等
+```
+sleep_wide <- data.frame(id=1:10,g1=sleep$extra[1:10],g2=sleep$extra[11:20])
+t.test(sleep_wide$g1,sleep_wide$g2,var.equal=T,mu =0) #假设两个总体的均值mu=0关系
+```
 ##### **Wilcoxon 符号秩检验**
 - 描述
     把观测值和零假设的中心位置之差的绝对值的秩分别按照不同的符号相加
 作为其检验统计量。
 
-> 分析列： 选择统计分析的列字段（ 单选）
+分析列： 选择统计分析的列字段（ 单选）
 中位数： 用户自定义中位数值
 
 
