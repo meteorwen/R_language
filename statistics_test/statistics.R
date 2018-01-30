@@ -84,34 +84,7 @@ dotchart(sp[i,1:4], pch=1:4, cex=0.8)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 norm.test(iris[,1:4])
-
-
-
-
-
 
 #input.data应为矩阵
 normal_test<- function(input.data,alpha=0.05,picplot=TRUE){
@@ -184,6 +157,19 @@ text <- function(p1,p2){
 }
 
 
+
+
+library(fitdistrplus) 
+fitdistrplus::descdist(1:10)
+fitdistrplus::descdist(rep(1,100))
+fitdistrplus::descdist(c(50 ,60 ,70 ,80 ,90 ,100 ,100))
+fitdistrplus::descdist(c(79 ,79, 79 ,80, 81, 81, 81))
+library(Hmisc)
+describe(iris)
+
+library(fBasics)
+basicStats(iris$Sepal.Length) #支持纯数据
+apply(iris[,1:4],2,function(x){basicStats(x)})
 
 
 
@@ -581,31 +567,176 @@ prop.test(s,t)
 
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
+# 平均数检验
+## T 检验（单个总体）student t检验方法，需要设置参数var.equal=TRUE。 
+#（当两个样本集都符合正态分布时，t检验效果最佳）
+# 样本与外生总体均值的对比：单样本t检验 
+#假设现在我们的目的为检验列extra数据对应的总体均值是否为0，
+#在下面的例子中，我们暂时忽略了变量group与变量ID 
+t.test(sleep$extra,var.equal=T,mu=0)   #mu 总体样本均值
 
-library(fitdistrplus) 
-fitdistrplus::descdist(1:10)
-fitdistrplus::descdist(rep(1,100))
-fitdistrplus::descdist(c(50 ,60 ,70 ,80 ,90 ,100 ,100))
-fitdistrplus::descdist(c(79 ,79, 79 ,80, 81, 81, 81))
-library(Hmisc)
-describe(iris)
+
+
+sleep_wide <- data.frame(id=1:10,g1=sleep$extra[1:10],g2=sleep$extra[11:20])
+t.test(extra ~ group,sleep)  #welch t检验（样本方差不等），函数默认地调用Welch t检验方法
+
+# T 检验（ 两个总体）
+t.test(extra ~ group,sleep,var.equal=T) #student t检验(样本方差一致)
+t.test(sleep_wide$g1,sleep_wide$g2,var.equal=T) #以宽数据为对象的操作（即指定两个独立向量）
+t.test(sleep_wide$g1,sleep_wide$g2,var.equal=T,mu =0) #假设两个总体的均值mu=0关系
+# 配对样本t检验 
+
+#我们的数据集为包含分组变量的数据框，那么程序将默认group=1的数据行中的第一行与group=2
+#的数据行中的第一行相互匹配。所以我们需要特别注意数据的排列顺序并确保其中没有缺失值，
+#否则样本间的配对就不得不被打破。在下面的例子中，
+#我们运用group和ID两个变量来确保数据排序的正确。 
+sleep_order <- sleep[order(sleep$group,sleep$ID),]
+t.test(extra ~ group,sleep_order,paired=T)
+
+# 配对t检验的实质等同于检验每组相互配对的样本数据的差值的总体均值是否为0。
+t.test(sleep_wide$g1 - sleep_wide$g2, mu =0,var.equal=T)
+
+# Wilcoxon 符号秩检验
+#如果正态都不满足！那就Wilcoxon非参数秩检验了，wilcox.test同样显示两组有显著性差异。
+# p<0.05,拒绝原假设
+wilcox.test(sleep$extra)
+wilcox.test(extra~group,sleep,mu = 0)
+wilcox.test(dd~treat, dat)
+
+
+boxplot(mtcars$mpg~mtcars$am,ylab='mpg',names = c('automatic','manual'))
+
+#执行wilcoxon秩和检验验证自动档手动档数据分布是否一致
+wilcox.test(mpg~am,data = mtcars)
+wilcox.test(mtcars$mpg[mtcars$am==0],mtcars$mpg[mtcars$am==1]) #（与上面等价）
+
+# 执行wilcoxon秩和检验来验证数据集中mtcars中自动档与手动档汽车的mpg值的分布是否一致，
+#p值<0.05,原假设不成立。意味两者分布不同。
+#警告“无法精确计算带连结的p值“这是因为数据中存在重复的值，一旦去掉重复值，警告就不会出现。
+
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# 相关性分析与检验
+## 相关性分析
+# 正负先关，0是代表不相关（为假设），1代表相关。取值范围（0~1）
+# Pearson积差相关系数衡量了两个定量变量之间的线性相关程度。
+# 它是说明有直线关系的两变量间，相关关系密切程度和相关方向的统计指标。
+n =10
+x <- rnorm(n)
+y <- rnorm(n)
+cor(x,y,method = "pearson" )  #得到xy的相关系数,pearson(默认)spearman、kendall
+cor.test(x,y,method = "pearson" )  #上面给出了相关系数的可信度区间和P-value，pearson(默认)
+# eg：
+cor.test(iris$Sepal.Length,iris$Sepal.Width,method="pearson") #Pearson相关性检验
+plot(iris$Sepal.Length,iris$Sepal.Width)
+cor.test(iris$Sepal.Length,iris$Sepal.Width,method="spearman")
+cor.test(iris$Petal.Length,iris$Petal.Width,method="pearson") 
+cor.test(iris$Petal.Length,iris$Petal.Width,method="spearman")
+#  之间的p值小于0.05，故拒绝原假设，认为它们之间是相关的
+# iris$Petal.Length,iris$Petal.Width 之间的相关系数cor大于0.8，故认为它们之间是高度相关的
+plot(iris$Petal.Length,iris$Petal.Width)
+
+states<-state.x77[,1:6]
+cov(states)   #协方差
+cor(states)   #三种相关系数
+cor(states,method = "spearman") # Spearman等级相关系数则衡量分级定序变量之间的相关程度。
+cor(mtcars,method = "kendall") # Kendall’s Tau相关系数也是一种非参数的等级相关度量。
+# 如欲考察几位老师对多篇作文的评分标准是否一致(又称评分者信度)，就应该使用肯德尔系数。
+pairs(states)
+x<-states[,c("Population","Income","Illiteracy","HS Grad")]
+y<-states[,c("Life Exp","Murder")]
+cor(x,y)
+
+cor.test(states[,3],states[,5])
+# 检验了预期寿命和谋杀率的Pearson相关系数为0的原假设。假设总体的相关度为0，
+# 则预计在一千万次中只会有少于一次的机会见到0.703这样大的样本相关度（即p=1.258e08）
+# 。由于这种情况几乎不可能发生，所以可以拒绝原假设，即预期寿命和谋杀率之间的总体相关度不为0。
+library(psych)
+corr.test(x=states,use="complete")#缺失值"pairwise"成对删除 或 "complete" 行删除;
+
+pairs(iris)#散点图是一种最为简单和最为有效的相关性分析工具
+
+# 典型相关分析(利用综合变量对之间的相关关系来反映两组指标之间的整体相关性的多元统计分析方法)
+#降维使用
+library(magrittr)
+scale_iris <- scale(iris[,1:4]) 
+cancor(scale_iris[,1:4],c(rep(1,50),rep(2,50),rep(3,50)))
+
+# 相关关系的可视化
+options(digits = 2)
+cor(mtcars)
+library(corrgram)
+corrgram(mtcars,order=TRUE,lower.panel=panel.shade,upper.panel=panel.pie,
+         text.panel=panel.txt,main="Correlogram of Mtcars intercorrelations" )
+corrgram(mtcars,order=TRUE,lower.panel=panel.ellipse,
+         upper.panel=panel.pts,text.panel=panel.txt,
+         diag.panel=panel.minmax,
+         main="Correlogram of Mtcars intercorrelations" )
+# ------------------------------------------------------------------------------
+## 偏相关系数涉及到三个及以上变量之间的关系
+
+# http://blog.csdn.net/qq_33683364/article/details/53992564
+# pcor（u，s） 
+# 其中的 u 是一个数值向量，前两个数值表示要计算相关系数的变量下标，
+# 其余的数值为条件变量（即要排除影响的变量）的下标。 S 为变量的协方差阵。
+library(ggm)
+pcor(c(1,5,2,3,6),cov(states)) #人口和谋杀率的偏相关系数(在控制了收入、文盲率和高中毕业率时)
+
+library(psych)
+# 在多元正态性的假设下，psych包中的
+# pcor.test()函数可以用来检验在控制一个或多个额外变量时两个变量之间的条件独立性。
+# 使用格式为：pcor.test(r,q,n)
+# 
+# r 是由 pcor() 函数计算得到的偏相关系数，
+# q 为要控制的变量数（以数值表示位置），
+# n 为样本大小。
+pcor.test(pcor(c(1,5,2,3,6),cov(states)),c(2,3,6),n=states)
+# psych 包中的 r.test() 函数提供了多种实用的显著性检验方法。
+# ------------------------------------------------------------------------------
+# 对应分析
+# http://www.cnblogs.com/jpld/p/4613109.html
+library(MASS)
+EyeHair<-caith
+corr_<-corresp(EyeHair,nf=2);corr_
+biplot(corr_) #作图
+# ------------------------------------------------------------------------------
+# 多重对应分析
+library(ca)
+data("wg93")
+mjca(wg93[,1:4])
+#输出标签由附加水平（1-5）名称的类别名称给出。
+#注意在调整方式中惯量的和不是100%
+#也可以绘图
+plot(mjca(wg93[,1:4]))
+summary(mjca(wg93[,1:4], lambda = "Burt"))#摘要一下MCA的结果：
+# ------------------------------------------------------------------------------
+# 卡方独立性检验（当 p-value < 0.1时就可以认为他们之间没有显著的相关性。）
+library(vcd)
+str(Arthritis)
+mytable <- xtabs(~Treatment+Improved, data=Arthritis)
+#这里是要检验的两个列属性：Treatment ，Improved，构建一个交叉相乘表。
+mytable
+chisq.test(mytable)   # 下面使用了卡方函数测量两个变量是否对立。　　　　　　　　　　　　　　　　　　　　　
+mytable <- xtabs(~Sex+Improved, data=Arthritis)
+mytable
+chisq.test(mytable)
+
+addmargins(mytable)
+
+
+
+
+
+
+
+
 
 
 
 
 summ <- summary(df) %>% as.data.frame(stringsAsFactors=FALSE) %>% .[,2:3]
-
-
-
 sp_s <- summary(sp) %>% as.data.frame()
-
 widedata <- data.frame(person=c('Alex','Bob','Cathy'),grade=c(2,3,4),score=c(78,89,88))
-
-
-
-
-
-
 
 names(summ) <- NULL
 summ %>% spread( summ[,1],summ[,2])
