@@ -1,8 +1,4 @@
-
-
-
-
-dsg_kmeans <- function(trainpath,modelpath,modelname,k){
+dsg_kmeans <- function(trainpath,k,modelpath,modelname,outpath){
 require(sparklyr)
 require(dplyr)
 require(magrittr)
@@ -30,7 +26,11 @@ dt <- spark_read_csv(sc, "train_data", trainpath)
 
 kmeans_model <- dt %>% ml_kmeans(centers = k)
 
-print(kmeans_model)
+res <- kmeans_model[[1]] %>% 
+  as.data.frame()  
+res <- copy_to(sc,res,"res", overwrite = TRUE)
+spark_write_csv(res,outpath)  #聚类中心点
+
 
 Sys.setenv(HADOOP_CMD="/opt/cloudera/parcels/CDH/bin/hadoop")
 Sys.setenv(HADOOP_STREAMING="/opt/cloudera/parcels/CDH/lib/hadoop-0.20-mapreduce/contrib/streaming/hadoop-streaming-2.6.0-mr1-cdh5.8.5.jar")
@@ -45,17 +45,5 @@ modelfile = hdfs.file(paste0(modelpath,modelname,".rda"), "w")
 hdfs.write(kmeans_model, modelfile)
 hdfs.close(modelfile)
 return(appid)
-spark_disconnect_all()
+spark_disconnect(sc)
 }
-
-#  trainpath <- "hdfs:///user/dsg/iris/iris.csv"      #训练数据路径与文件名称(没有lab列，测试只包含iris[,1:2])
-#  modelpath <- "hdfs:///user/dsg/iris/"      #模型保存的路径
-#  modelname <- "ml_keans_model"      #模型名称
-#  k <- 3                #聚类数量(任何值)
-#  max <- as.numeric(argv[5])              #最大迭代次数
-#  
-# modelfilename <- "hdfs:///user/dsg/iris/ml_keans_model.rda"
-# modelfile = hdfs.file(modelfilename, "r")
-# m <- hdfs.read(modelfile)
-# model <- unserialize(m)
-# hdfs.close(modelfile)
