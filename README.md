@@ -66,9 +66,9 @@
 `/usr/lib64/R/library/`
 
 多数包可以通过:<br>
-
-    $ sudo R -e 'install.packages("ggplot2", repos = "http://cran.rstudio.com/")'
-
+```
+install.packages("ggplot2",repos = "http://cran.rstudio.com/",lib ="/usr/lib64/R/library/")
+```
 的方式安装，但是有的包如Rcpp或者httpuv等还是会报无法编译的错，可以先查看:
 
     yum list R-\
