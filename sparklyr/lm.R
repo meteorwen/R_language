@@ -1,10 +1,10 @@
-# trainpath <- "hdfs:///user/dsg/iris/iris.csv"      #训练数据路径与文件名称
-# modelpath <- "hdfs:///user/dsg/iris/lm/"      #模型保存的路径
-# modelname <- "lm_model.rda"  
-# filepath  <- "hdfs:///user/dsg/iris/lm/"
-# filename <- "res_lm.csv"  #存储斜率和截距
 
-dsg_lm <- function(trainpath,modelpath,modelname,filename){
+# trainpath <- "hdfs:///user/dsg/iris/iris.csv"             #训练数据路径与文件名称
+# modelpath <- "hdfs:///user/dsg/iris/lm/lm_model.rda"      #模型保存的路径
+# filepath  <- "hdfs:///user/dsg/iris/lm/res_lm.csv"        #存储斜率和截距
+ 
+
+dsg_lm <- function(trainpath,modelpath,modelname){
   require(sparklyr)
   require(dplyr)
   require(magrittr)
@@ -33,14 +33,16 @@ dsg_lm <- function(trainpath,modelpath,modelname,filename){
   ml_linear_regression(Petal_Length ~ Petal_Width)
   
   
+  filename <- unlist(strsplit(filepath,split="/")) %>% .[length(.)]
+  fpath <- sub(pattern = filename, replacement = "", filepath)
   
   summary(lm_model)
   coef(lm_model)  %>%    #求模型系数
     as.data.frame() %>% 
-    write.csv(filename)
+    write.csv(fpath)
   
   hadoop_cmd <- "/opt/cloudera/parcels/CDH/bin/hadoop"
-  system2(hadoop_cmd, paste("fs -put",filename,filepath,sep = " "))
+  system2(hadoop_cmd, paste("fs -put",filename,fpath,sep = " "))
   
   spark_disconnect(sc)
   
@@ -53,7 +55,7 @@ dsg_lm <- function(trainpath,modelpath,modelname,filename){
   require(rJava)
   hdfs.init()
   
-  modelfile = hdfs.file(paste0(modelpath,modelname,".rda"), "w")
+  modelfile = hdfs.file(paste0(modelpath), "w")
   hdfs.write(lm_model, modelfile)
   hdfs.close(modelfile)
   
@@ -78,6 +80,23 @@ dsg_lm <- function(trainpath,modelpath,modelname,filename){
 #       subtitle = "Use Spark.ML linear regression to predict petal length as a function of petal width."
 #     )
 #   
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   
   
   
