@@ -620,6 +620,50 @@ addmargins(mytable)
 互依赖的定量关系的一种统计分析方法。 在回归分析中包括两个或两个以上的自
 变量， 且因变量和自变量之间是线性关系， 则称为多元线性回归分析。
 
+```
+# in R
+x <- c(151, 174, 138, 186, 128, 136, 179, 163, 152, 131)
+y <- c(63, 81, 56, 91, 47, 57, 76, 72, 62, 48)
+
+relation <- lm(y~x)  
+summary(relation)
+coef(relation)#求模型系数
+formula(relation)#提取模型公式
+
+a <- data.frame(x = 170)  #新数据进行预测
+result <-  predict(relation,a)  #预测新人的体重
+# 散点图与拟合直线
+plot(y,x,col = "blue",main = "Height & Weight Regression",
+     abline(lm(x~y)),cex = 1.3,pch = 16,xlab = "Weight in Kg",ylab = "Height in cm")
+dev.off()
+
+# in spark
+
+lm_model <- iris_tbl %>%
+  select(Petal_Width, Petal_Length) %>%
+  ml_linear_regression(Petal_Length ~ Petal_Width)
+
+
+iris_tbl %>%
+  select(Petal_Width, Petal_Length) %>%
+  collect %>%
+  ggplot(aes(Petal_Length, Petal_Width)) +
+    geom_point(aes(Petal_Width, Petal_Length), size = 2, alpha = 0.5) +
+    geom_abline(aes(slope = coef(lm_model)[["Petal_Width"]],
+                    intercept = coef(lm_model)[["(Intercept)"]]),
+                color = "red") +
+  labs(
+    x = "Petal Width",
+    y = "Petal Length",
+    title = "Linear Regression: Petal Length ~ Petal Width",
+    subtitle = "Use Spark.ML linear regression to predict petal length as a function of petal width."
+  )
+
+
+# 预测过程
+ predicted <- sdf_predict(lm_model, test) %>%
+    collect()
+```
 
 ##### **逐步回归分析**
 - 描述

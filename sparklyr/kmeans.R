@@ -31,7 +31,7 @@ res <- kmeans_model[[1]] %>%
 res <- copy_to(sc,res,"res", overwrite = TRUE)
 spark_write_csv(res,outpath)  #聚类中心点
 
-
+# 直接通过rhdfs存储模型：
 Sys.setenv(HADOOP_CMD="/opt/cloudera/parcels/CDH/bin/hadoop")
 Sys.setenv(HADOOP_STREAMING="/opt/cloudera/parcels/CDH/lib/hadoop-0.20-mapreduce/contrib/streaming/hadoop-streaming-2.6.0-mr1-cdh5.8.5.jar")
 Sys.setenv(HADOOP_COMMON_LIB_NATIVE_DIR="/opt/cloudera/parcels/CDH/lib/hadoop/lib/native/")
@@ -47,3 +47,10 @@ hdfs.close(modelfile)
 return(appid)
 spark_disconnect(sc)
 }
+
+
+# 本地上传方式存储模型：
+# saveRDS(kmeans_model, file = paste0(modelname,".rda"))
+# 
+# hadoop_cmd <- "/opt/cloudera/parcels/CDH-5.8.0-1.cdh5.8.0.p0.42/bin/hadoop"
+# system2(hadoop_cmd, paste("fs -copyFromLocal",paste0(modelname,".rda"),modelpath,sep = " "))
