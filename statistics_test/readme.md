@@ -767,7 +767,31 @@ lines(df$w,fitted(fit))
     可以使线性回归模型满足线性性、 独立性、 方差齐性以及正态性的同时又
 不丢失信息。 统计建模中常用的一种用于连续的响应变量不满足正态分布的情况
 的数据变换。
+>在许多情况下，为了满足经典线性模型的正态性假设，常常需要使用指数变换或者对数转化，使其转换后的数据接近正态，比如数据是非单峰分布的，或者各种混合分布，虽然不一定起作用，但是不妨试试。
+我们使用平日最常见的box-cox转换，因为之前看到有人问到如何使用spss进行转换，到网上找了资料，是需要语法的，在spss中进行语法指令，显然相比较用R,还是很不方便。
+分两步，第一步需要计算出，lambda值，然后把转化后的lambda值带入方程中，同时对于转换后的数据拟合出来的方程依然进行正态性的检验
 
+```
+library(car)
+hist(Wool$cycle)
+summary(p1 <- powerTransform(Wool$cycles)) 
+# 运用powerTansform函数，确定λ，然后以此为基础进行bcPower变换
+hist(bcPower(Wool$cycles, p1$roundlam))
+# 要进行powerTransform的函数，x中不能有0或者负数。
+#因此，常用的做法是将x加上一定的数，平移后使其没有负数。
+
+library(MASS)
+b=boxcox(cycles~., data=Wool) # 定义函数类型和数据
+I=which(b$y==max(b$y))
+b$x[I]    #lambda= -0.06060606  得到-0.06060606 就是下图的最高点
+# 第二步：依据上一步boxcox转化的lambda值，即-0.06060606 次方，代入模型
+
+c=lm(cycles^b$x[I] ~ len + amp + load,data=Wool) # 定义一个多元回归，同理y x1 x2 x3 是cvs文件中，带变量名的字母
+d=step(c) # 使用逐步法，进入多个自变量
+summary(d) # 模型汇总
+anova(d) #  用方差分析法对拟合的模型进行检验
+shapiro.test(d$res) # 用残差对boxcox变化后的这个逐步回归方程 正态性进行检验
+```
 ##### **抗干扰回归**
 - 描述
     抗干扰回归拟合数据集中比较好的点， 从而实现高崩溃点的回归估计。 崩
@@ -820,49 +844,103 @@ lines(df$w,fitted(fit))
 聚类结果集合： 勾选进行集合， 不勾选则不集合
 
 ```
-dsg_kmeans <- function(trainpath,modelpath,modelname,k){
-require(sparklyr)
-require(dplyr)
-require(magrittr)
-# config <- spark_config()
-# config$spark.driver.cores <- 4
-# config$spark.executor.cores <- 4
-# config$spark.executor.memory <-"4g"
+# trainpath <- "hdfs:///user/dsg/iris/train_data.csv"             #训练数据路径与文件名称
+# k =3
+# modelpath <- "hdfs:///user/dsg/iris/model/"      #模型保存的路径
+# filepath  <- "hdfs:///user/dsg/iris/res_kmeans"        #存储斜率和截距
 
-sc <- spark_connect(master = "yarn-client",
-                    version="1.6.0", 
-                    # config = config,
-                    spark_home = '/opt/cloudera/parcels/CDH/lib/spark/')
-require(stringr)
-require(magrittr)
-lab <- "Submitted application application_"
-ss <- spark_log(sc, n = 10000) %>% 
-  as.vector() 
-appid <- grep(lab,ss) %>% 
-  ss[.] %>% 
-  strsplit( " ") %>% 
-  unlist %>% 
-  tail(1) 
 
-dt <- spark_read_csv(sc, "train_data", trainpath)
 
-kmeans_model <- dt %>% ml_kmeans(centers = k)
+dsg_kmeans <- function(trainpath,modelpath,k){
+  require(sparklyr)
+  require(dplyr)
+  require(magrittr)
+  
+  sc <- spark_connect(master = "yarn",
+                      version="2.1.0", 
+                      app_name = "sparklyr2.1.0",
+                      spark_home = '/opt/cloudera/parcels/SPARK2/lib/spark2/'
+                      # spark_home = '/opt/cloudera/parcels/SPARK2-2.2.0.cloudera1-1.cdh5.12.0.p0.142354b/spark2'
+                      ) 
+  
+  require(stringr)
+  require(magrittr)
+  lab <- "Submitted application application_"
+  ss <- spark_log(sc, n = 10000) %>% 
+    as.vector() 
+  appid <- grep(lab,ss) %>% 
+    ss[.] %>% 
+    strsplit( " ") %>% 
+    unlist %>% 
+    tail(1) 
+  
+  dt <- spark_read_csv(sc, "train_data", trainpath)
+  
+  kmeans_model <- dt  %>% 
+    ml_kmeans(.,centers = k,features = colnames(.)) 
+  ml_save(kmeans_model, modelpath,overwrite = T)
+  
+ res1 <- kmeans_model[[8]][3] %>% 
+   as.data.frame() %>% 
+   data.frame(id=c(1:nrow(.)),.) #训练阶段的聚类情况
+ res2 <- kmeans_model[[6]] %>% 
+   data.frame(id=c(1:nrow(.)),.) #训练阶段各特征的聚类中心点
+ res3 <- data.frame(id=length(kmeans_model[[7]]),Squared_Errors=kmeans_model[[7]])
+ #within Set Sum of Squared Errors 族内误差平方和
+ df <- merge(res1,res2,all=T) %>% 
+   merge(res3,all=T)
+  
+  res <-copy_to(sc,df,"res")
+  spark_write_csv(res,filepath)
+  
+  return(appid)
+  spark_disconnect(sc)
+}
+#==============================Predicted========================================
 
-print(kmeans_model)
+# modelpath <- "hdfs:///user/dsg/iris/model/"      #模型保存的路径
+# testpath <- "hdfs:///user/dsg/iris/test_data.csv"        #测试数据路径与文件名称
+# predicted_path <- "hdfs:///user/dsg/iris/kmeans_pre"               #预测结果保存路径
 
-Sys.setenv(HADOOP_CMD="/opt/cloudera/parcels/CDH/bin/hadoop")
-Sys.setenv(HADOOP_STREAMING="/opt/cloudera/parcels/CDH/lib/hadoop-0.20-mapreduce/contrib/streaming/hadoop-streaming-2.6.0-mr1-cdh5.8.5.jar")
-Sys.setenv(HADOOP_COMMON_LIB_NATIVE_DIR="/opt/cloudera/parcels/CDH/lib/hadoop/lib/native/")
-Sys.setenv(HADOOP_CONF_DIR='/etc/hadoop/conf.cloudera.hdfs')
-Sys.setenv(YARN_CONF_DIR='/etc/hadoop/conf.cloudera.yarn')
-require(rhdfs)
-require(rJava)
-hdfs.init()
 
-modelfile = hdfs.file(paste0(modelpath,modelname,".rda"), "w")
-hdfs.write(kmeans_model, modelfile)
-hdfs.close(modelfile)
-return(appid)
-spark_disconnect_all()
+
+dsg_kmeans_predict<- function(modelpath,modelname,testpath,predicted_path,predicted_name){
+  
+  require(sparklyr)
+  require(dplyr)
+  require(magrittr)
+  sc <- spark_connect(master = "yarn",
+                      version="2.1.0", 
+                      app_name = "sparklyr2.1.0",
+                      spark_home = '/opt/cloudera/parcels/SPARK2/lib/spark2/'
+                      # spark_home = '/opt/cloudera/parcels/SPARK2-2.2.0.cloudera1-1.cdh5.12.0.p0.142354b/spark2'
+  ) 
+  
+  require(stringr)
+  require(magrittr)
+  lab <- "Submitted application application_"
+  ss <- spark_log(sc, n = 10000) %>% 
+    as.vector() 
+  appid <- grep(lab,ss) %>% 
+    ss[.] %>% 
+    strsplit( " ") %>% 
+    unlist %>% 
+    tail(1) 
+  
+  model <- ml_load(sc,modelpath)
+  
+  test <- spark_read_csv(sc, "test_data", testpath)
+  
+  
+  Predicted <- sdf_predict(test,model) %>%
+    select(-features) %>% 
+    as.data.frame() %>% 
+    copy_to(sc,.,"Predicted")
+  spark_write_csv(Predicted,predicted_path,overwrite = TRUE)
+  
+  
+  return(appid)
+  spark_disconnect(sc)
+  
 }
 ```

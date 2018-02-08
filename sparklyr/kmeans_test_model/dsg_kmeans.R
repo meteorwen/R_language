@@ -2,10 +2,10 @@
 # k =2
 # modelpath <- "hdfs:///user/dsg/iris/ml_test/model/"       #模型保存的路径
 # filepath  <- "hdfs:///user/dsg/iris/res_kmean"           #模型摘要信息
+# featrues <- "Sepal_Length,Sepal_Width"  
 
 
-
-dsg_kmeans <- function(trainpath,modelpath,k){
+dsg_kmeans <- function(trainpath,featrues,k,modelpath,filepath){
   require(sparklyr)
   require(dplyr)
   require(magrittr)
@@ -31,7 +31,7 @@ dsg_kmeans <- function(trainpath,modelpath,k){
   dt <- spark_read_csv(sc, "train_data", trainpath)
   
   kmeans_model <- dt  %>% 
-    ml_kmeans(.,centers = k,features = colnames(.)) 
+    ml_kmeans(.,centers = k,features = featrues %>% strsplit(",") %>% unlist()) 
   ml_save(kmeans_model, modelpath,overwrite = T)
   
  res1 <- kmeans_model[[8]][3] %>% 

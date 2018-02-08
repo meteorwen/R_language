@@ -1,9 +1,9 @@
 # trainpath <- "hdfs:///user/dsg/iris/lm/train_dt.csv"             #训练数据路径与文件名称
 # modelpath <- "hdfs:///user/dsg/iris/lm/lm_model"      #模型保存的路径
 # filepath  <- "hdfs:///user/dsg/iris/res_lm"         #存储斜率和截距
+# featrues <- "Sepal_Length,Sepal_Width,Petal_Length,Petal_Width"
 
-
-dsg_lm <- function(trainpath,modelpath,modelname){
+dsg_lm <- function(trainpath,featrues,modelpath,modelname){
   require(sparklyr)
   require(dplyr)
   require(magrittr)
@@ -27,10 +27,13 @@ dsg_lm <- function(trainpath,modelpath,modelname){
     tail(1) 
   
   dt <- spark_read_csv(sc, "train_data", trainpath)
+  featrues_vec <- featrues %>% strsplit(",") %>% unlist()
+  response <- featrues_vec %>% head(1)
+  feature <- featrues_vec[!(featrues_vec %in% response)]
 
   lm_model <- dt %>%
-  ml_linear_regression(response = colnames(dt)[1] , 
-                      features = colnames(dt)[2:length(colnames(dt))])  #dt第一列作为Y传入，其余当做xn传入
+  ml_linear_regression(response = response, 
+                      features = feature)  #dt第一列作为Y传入，其余当做xn传入
   
   ml_save(lm_model, modelpath,overwrite = T)
   
