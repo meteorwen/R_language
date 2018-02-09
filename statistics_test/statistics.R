@@ -1,4 +1,11 @@
-#  statistics
+# ==============================================================================
+# -*- coding: utf-8 -*-
+#' Created on 2017-1-30
+#' @author: qw
+# ==============================================================================
+
+
+ statistics
 #1. 描述统计量
 library(ggplot2)
 str(iris)
@@ -728,12 +735,6 @@ addmargins(mytable)
 
 
 
-
-
-
-
-
-
 summ <- summary(df) %>% as.data.frame(stringsAsFactors=FALSE) %>% .[,2:3]
 sp_s <- summary(sp) %>% as.data.frame()
 widedata <- data.frame(person=c('Alex','Bob','Cathy'),grade=c(2,3,4),score=c(78,89,88))
@@ -743,6 +744,339 @@ summ %>% spread( summ[,1],summ[,2])
 
 library(reshape2)
 dcast(summ,Var2,Freq)
+
+
+
+# ==============================================================================
+# ==============================================================================
+# 回归分析
+# ------------------------------------------------------------------------------
+## 多重共线性分析
+# 得到各个系数的方差膨胀因子，一般认为，
+# （注意：在《R语言实战》第2版P182中认为:
+#   VIF>4         就存在多重共线性）；
+#  当0<VIF<10，不存在多重共线性
+#  当10≤VIF<100   存在较强的多重共线性;
+#  当VIF>=100     多重共线性非常严重。
+# k<100,说明共线性程度小；如果100<k<1000，则存在较多的多重共线性;若k>1000，存在严重的多重共线性
+
+collinear<-data.frame(
+  Y=c(10.006, 9.737, 15.087, 8.422, 8.625, 16.289, 
+      5.958, 9.313, 12.960, 5.541, 8.756, 10.937),
+  X1=rep(c(8, 0, 2, 0), c(3, 3, 3, 3)), 
+  X2=rep(c(1, 0, 7, 0), c(3, 3, 3, 3)),
+  X3=rep(c(1, 9, 0), c(3, 3, 6)),
+  X4=rep(c(1, 0, 1, 10), c(1, 2, 6, 3)),
+  X5=c(0.541, 0.130, 2.116, -2.397, -0.046, 0.365,
+       1.996, 0.228, 1.38, -0.798, 0.257, 0.440),
+  X6=c(-0.099, 0.070, 0.115, 0.252, 0.017, 1.504,
+       -0.865, -0.055, 0.502, -0.399, 0.101, 0.432)
+)
+
+XX<-cor(collinear[2:7])   #求出自变量的协方差
+kappa(XX,exact=TRUE)  #exact=TRUE表示精确计算条件数；
+#再用kappa()函数求出条件数,如果条件数大于1000说明严重多重共线
+
+#eigen()用于发现共线性强的解释变量组合#
+eigen(XX)    #查看哪些变量是共线的(可以看出x1到x5是多重共线的，可以保留一个。)
+
+cor(iris[,1:4]) %>% kappa(exact=TRUE)
+eigen(cor(iris[,1:4]))
+
+# ------------------------------------------------------------------------------
+## 线性回归分析（ in R）
+age=c(18:29)   #年龄从18到29岁
+height=c(76.1,77,78.1,78.2,78.8,79.7,79.9,81.1,81.2,81.8,82.8,83.5)
+plot(age,height,main = "身高与年龄散点图")
+lm.reg <- lm(height~age)  #建立回归方程
+abline(lm.reg)    #画出拟合的线性回归线
+
+coef(lm.reg)#求模型系数
+formula(lm.reg)#提取模型公式
+
+# 回归方程，对模型进行检验，方差分析的R
+anova(lm.reg)    #模型方差分析
+# 由于P<0.05，于是在α=0.05水平下，本例的回归系数有统计学意义，身高和年龄存在直线回归关系。
+# 同理，对于上例中的回归方程，我们对模型进行回归系数的t检验，t检验的R代码如下：
+summary(lm.reg)    #回归系数的t检验
+ 
+# 同方差分析，由于P<0.05，于是在α=0.05水平下，本例的回归系数有统计学意义，身高和年龄存在回归关系。
+
+x <- c(151, 174, 138, 186, 128, 136, 179, 163, 152, 131)
+y <- c(63, 81, 56, 91, 47, 57, 76, 72, 62, 48)
+relation <- lm(y~x)  # 得到斜率0.675  和截距-38.455  y = 0.675x + (-38.455)
+summary(relation)
+a <- data.frame(x = 170)
+result <-  predict(relation,a)  #预测新人的体重
+
+plot(y,x,col = "blue",main = "Height & Weight Regression",
+     abline(lm(x~y)),cex = 1.3,pch = 16,xlab = "Weight in Kg",ylab = "Height in cm")
+dev.off()
+
+# ------------------------------------------------------------------------------
+# 逐步回归分析
+
+X1=c( 7, 1, 11, 11, 7, 11, 3, 1, 2, 21, 1, 11, 10);
+X2=c(26, 29, 56, 31, 52, 55, 71, 31, 54, 47, 40, 66, 68);
+X3=c( 6, 15, 8, 8, 6, 9, 17, 22, 18, 4, 23, 9, 8);
+X4=c(60, 52, 20, 47, 33, 22, 6, 44, 22, 26, 34, 12, 12);
+Y =c(78.5, 74.3, 104.3, 87.6, 95.9, 109.2, 102.7, 72.5,93.1,115.9,83.8,113.3,109.4);
+cement<-data.frame(X1,X2,X3,X4,Y)
+lm.sol<-lm(Y~X1+X2+X3+X4,data=cement)
+summary(lm.sol) #查看Pr值是否足够小e-7以后
+
+
+#从上述计算中可以看到，如果选择全部变量作回归方程，效果是不好的，
+#因为回归方程的系数没有一项通过检验。接下来使用step()作逐步回归：
+
+lm.step<-step(lm.sol)#查看AIC值最小和所去掉自变量
+
+# 从程序运行结果可以看到，用全部变量作回归方程时，AIC值为26.94。
+# 如果去掉变量X3，得到的回归方程的AIC值为24.974，如果去掉变量X4，
+# 得到的回归方程的AIC值为25.011。后面类推，由于去掉变量X3可以使AIC达到最小，
+# 因此R语言自动去掉变量X3，进行下一轮计算。
+
+summary(lm.step)  #Pr值可以看到 x2、x4是人不够小（变量X2、X4系数检验的显著性水平仍然不理想）
+
+# 由显示结果看到：回归系数检验的显著性水平很很大提高，
+# 但变量X2、X4系数检验的显著性水平仍然不理想。下面该如何处理呢？
+# R语言还有两个函数可以用来作逐步回归，这两个函数是add1()和drop1()，它们的调用格式为：
+
+# add1(object,scope,scale=0,test=c("none","Chisq","F"),x= NULL,k=2)
+# drop1(object,scope,scale=0,test=c("none","Chisq","F"),x= NULL,k=2)
+
+
+# 其中object是由拟合模型构成的对象，scope是模型考虑增加或去掉项构成的公式，
+# scale是用于计算残差的均方估计值，缺省值为0或NULL。下面用drop1()函数计算。
+
+drop1(lm.step)  #查看Sq残差的平方,去掉最小Sq值对应自变量
+
+# 从运算结果来看，如果去掉变量X4，AIC值会从24.974增加到25.420，是增加最少的。
+# 另外，除了AIC准则外，残差的平方和也是逐步回归的重要指标之一。
+# 从直观上来看，拟合越好的方程，残差的平方和应越小，去掉X4，残差的平方和上升9.93，
+# 也是最少的，因此从这两项指标来看，应该去掉变量X4。
+
+lm.opt<-lm(Y~X1+X2,data=cement)
+summary(lm.opt)  #可以看到x1、x2所对应的Pr值都足够的小，因此挑选出自变量到“最优”回归方程
+
+# 这个结果应该是满意的，因为所有的检验都是显著的，最后得到“最优”回归方程为：
+# Y= 52.58+1.468*X1+0.6623*X2
+
+# ------------------------------------------------------------------------------
+# 广义线性模型
+##  逻辑回归 Logistic（因变量为类别型）
+#1. 预测阶段
+library(AER)
+data(Affairs,package = "AER")
+summary(Affairs)
+table(Affairs$affairs) #出轨次数
+
+Affairs$ynaffair[Affairs$affairs > 0] <- 1
+Affairs$ynaffair[Affairs$affairs == 0] <- 0
+Affairs$ynaffair <- factor(Affairs$ynaffair,levels = c(0,1),labels = c("NO","Yes"))
+table(Affairs$ynaffair) #是否出轨
+
+
+fit.full <- glm(ynaffair ~ gender + age + yearsmarried + children + religiousness + education + occupation + rating,
+                data = Affairs, family = binomial())
+summary(fit.full)
+# 从结果来看，性别、是否有孩子、学历、和职业对模型的结果贡献不大，因此减少变量数重新拟合，并检查新模型是否拟合得更好：
+fit.reduced <- glm(ynaffair ~ age + yearsmarried + religiousness + rating,
+                   data = Affairs, family = binomial())
+summary(fit.reduced)
+# 新模型每个回归系数都非常显著，对于两个嵌套模型可以使用anova()函数对它们进行比较，对于广义线性回归可以采用卡方检验。
+anova(fit.full,fit.reduced,test = "Chisq")
+# 卡方值不显著，表明四个预测变量的新模型与九个完整预测变量的模型拟合程度一样好，因此可以简化模型。
+
+#解释模型参数(在Logistic回归当中，响应变量是Y=1的对数优势比（log），因此为了更好的解释性，需要对结果进行指数化。)
+coef(fit.reduced)
+exp(coef(fit.reduced))
+
+# 可以看到婚龄增加一年，婚外情的优势比将乘以1.106(保持年龄、宗教信仰和婚姻评定不变)；
+# 相反，年龄增加一岁，婚外情的的优势比则乘以0.965。
+# 因此，随着婚龄的增加和年龄、宗教信仰与婚姻评分的降低，婚外情优势比将上升。类似的，考虑到预测变量不能为0，
+# 截距项在此处没有什么特定含义。
+# 
+# 如有必要，可以使用confint()函数获取系数的置信区间，也可以进行指数化。
+
+confint(fit.reduced)
+
+#2. 预测阶段
+#创建虚拟数据集
+testdata <- data.frame(rating=c(1, 2, 3, 4, 5), age=mean(Affairs$age),
+                       yearsmarried=mean(Affairs$yearsmarried),
+                       religiousness=mean(Affairs$religiousness))
+#使用测试数据集预测相应的概率
+testdata$prob <- predict(fit.reduced, newdata=testdata, type="response")
+testdata
+# 从结果上看，当婚姻评分从1(很不幸福)变为5(非常幸福)时，婚外情概率从0.53降低到了0.15(假定年龄、婚龄和宗教信仰不变)。
+#类似的方法我们可以探究每一个预测变量对结果概率的影响。
+
+# 检查是否过度离势（比值phi =残差偏差/残差自由度比1大很多，则可以认为存在过度离势）
+deviance(fit.reduced)/df.residual(fit.reduced) # 婚外情的例子比值非常接近于1，表明没有过度离势。
+
+fit <- glm(ynaffair ~ age + yearsmarried + religiousness + rating, family = binomial(),data = Affairs)
+fit.od <- glm(ynaffair ~ age + yearsmarried + religiousness + rating, family = quasibinomial(),data = Affairs)
+pchisq(summary(fit.od)$dispersion * fit$df.residual,fit$df.residual,lower =F)
+# 此时p值不显著，这进一步增加了我们认为不存在过度离势的信心。
+
+## 泊松回归（因变量为计数型）
+#如果我们将兴趣从是否有婚外情转移到过去一年中婚外情的次数，便可以直接泊松回归对计数型数据进行分析
+
+library(robust)
+data(breslow.dat, package = "robust")
+names(breslow.dat)
+summary(breslow.dat[c(6,7,8,10)])
+
+
+opar <- par(no.readonly = TRUE)
+
+par(mfrow=c(1,2))
+attach(breslow.dat)
+hist(sumY, breaks = 20, xlab = "Seizure Count",main = "Distribution of Seizures")
+boxplot(sumY~Trt, xlab="Treatment",main = "Group Comparisons")
+par(opar)
+
+# 上图清楚地展示了因变量的偏倚特性和可能存在的离群点，
+# 而且在药物治疗下癫痫发病数似乎变小了，且方差也变小了。下面用泊松回归进行拟合：
+fit <- glm(sumY ~ Base + Age + Trt, data = breslow.dat, family = poisson())
+summary(fit)
+# 输出结果中的Coefficients结果列出了偏差、回归参数、标准误差和参数为0的检验。显然，所有的p值都小于0.05，结果都非常显著。
+
+# Logistic回归是对数优势比，在泊松回归中，因变量以条件均值的对数形式 log_e(lambda)来建模，
+# 响应的初始模型参数为对数均值，同样也可以进行指数化以探求因变量的初始尺度上解释回归系数。以下代码给出了着两者的参数：
+coef(fit)   #参数显示
+# 年龄的回归参数为0.023，表明保持其他预测变量不变,年龄增加一岁，癫痫发病数的对数均值将相应增加0.03。
+# 截距项为预测变量都为0时，发病数的对数均值，显然年龄不可能为0，
+# 而且调查对象的基础发病数也都不为0，因此截距项没有实际意义。
+exp(coef(fit))
+# 从指数化的系数可以看出，保持其他变量不变,年龄增加一岁，期望的癫痫发病数将乘以1.02。
+# 这意味着年龄的增加与较高的癫痫发病数相关联。
+# 更为重要的是,一单位 Trt 的变化(即从安慰剂到治疗组),期望的癫痫发病数将乘以0.86，
+# 换句话说，保持基础癫痫发病数和年龄不变，服药组相对于安慰剂组癫痫发病数降低了20%。
+
+
+# ------------------------------------------------------------------------------
+# 一元多项式回归
+# 普通最小二乘回归法（OLS）OLS回归是通过预测变量的加权和来预测量化的因变量，其中权重是通过数据估计而得到的参数。
+# 找到最优方程
+fit1 <- lm(women$weight ~ women$height,women)
+summary(fit1) #没有限制小数点的位数。。截距为-87.51667，斜率为3.45  Multiple R-squared:  0.991
+fitted(fit1)  #fitted()的结果是你得到相应的模型后，(x1,x2,...,xn)相应的值，也就是(y1,y2,...,yn)的值
+residuals(fit1)  #residuals()---残差 =实际值-拟合值
+
+#pic1
+plot(women$height , women$weight)
+lines(women$height,fitted(fit1))
+dev.off()
+#pic2
+plot(women$height , women$weight)
+abline(fit1)
+dev.off()
+
+fit2 <- lm(weight ~ height+I(height^2),women)
+summary(fit2)   # Multiple R-squared:  0.9995
+
+
+fit3<-lm(weight~height+I(height^2)+I(height^3),data=women)
+summary(fit3)   # R-squared:  0.9998
+
+# 二次多项式回归
+
+df <- data.frame(w=c(42,42,46,46,46,50,50,50,52,52,58,58),
+                 l=c(2.55,2.2,2.75,2.4,2.8,2.81,3.41,3.1,3.46,2.85,3.5,3))
+fit <- lm(l~w+I(w^2),df)  #I（）为R中表达式另一个常用符号，用来从算数的角度来解释括号中的元素
+
+with(df,plot(l~w))
+lines(df$w,fitted(fit))
+
+# ------------------------------------------------------------------------------
+# BoxCox 变换
+library(car)
+hist(Wool$cycle)
+summary(p1 <- powerTransform(Wool$cycles)) 
+# 运用powerTansform函数，确定λ，然后以此为基础进行bcPower变换
+hist(bcPower(Wool$cycles, p1$roundlam))
+# 要进行powerTransform的函数，x中不能有0或者负数。
+#因此，常用的做法是将x加上一定的数，平移后使其没有负数。
+
+library(MASS)
+b=boxcox(cycles~., data=Wool) # 定义函数类型和数据
+I=which(b$y==max(b$y))
+b$x[I]    #lambda= -0.06060606  得到-0.06060606 就是下图的最高点
+# 第二步：依据上一步boxcox转化的lambda值，即-0.06060606 次方，代入模型
+
+c=lm(cycles^b$x[I] ~ len + amp + load,data=Wool) # 定义一个多元回归，同理y x1 x2 x3 是cvs文件中，带变量名的字母
+d=step(c) # 使用逐步法，进入多个自变量
+summary(d) # 模型汇总
+anova(d) #  用方差分析法对拟合的模型进行检验
+shapiro.test(d$res) # 用残差对boxcox变化后的这个逐步回归方程 正态性进行检验
+
+
+
+
+# ==================================判别分析====================================
+# ==============================================================================
+# 线性判别分
+# 线性判别分析(LDA)主要用到了    lda(formula,data,…,subset,na.action)函数;
+
+library(caret)
+index <-createDataPartition(1:nrow(iris), time=1, p=0.7, list=F)
+
+index <- sample(1:nrow(iris), 100)
+train <-iris[index, ]
+test <-iris[-index, ]
+
+library(MASS)
+fit_lda1=lda(Species~.,train)
+
+fit_lda1
+summary(fit_lda1)
+fit_lda1[1:length(fit_lda1)] #查看模型的输出结果
+
+
+plot(fit_lda1)
+plot(fit_lda1,dimen=1)
+
+pre_ldal=predict(fit_lda1,test[,1:4])
+pre_ldal[1:length(pre_ldal)]
+
+table(test$Species,pre_ldal$class)
+error_lda1 <- sum(as.numeric(as.numeric(pre_ldal$class)!=as.numeric(test$Species)))/nrow(test)
+acc_lda1  <- sum(as.numeric(as.numeric(pre_ldal$class)==as.numeric(test$Species)))/nrow(test)
+# ------------------------------------------------------------------------------
+# 二次判别分析
+# 二次判别分析(QDA)则用到了        qda(formula,data,…,subset,na.action)函数
+fit_lda2=qda(Species~.,train) #二次判别
+
+
+
+# ==================================聚类分析====================================
+# 系统聚类 
+data=iris[,-5]
+dist.e=dist(data,method='euclidean')
+heatmap(as.matrix(dist.e),labRow = F, labCol = F)
+# 首先提取iris数据中的4个数值变量，然后计算其欧氏距离矩阵。然后将矩阵绘制热图，
+# 从图中可以看到颜色越深表示样本间距离越近，大致上可以区分出三到四个区块，其样本之间比较接近。
+model1=hclust(dist.e,method='ward')
+result=cutree(model1,k=3)
+# 然后使用hclust函数建立聚类模型，结果存在model1变量中，
+# 其中ward参数是将类间距离计算方法设置为离差平方和法。
+# 使用plot(model1)可以绘制出聚类树图。如果我们希望将类别设为3类，
+# 可以使用cutree函数提取每个样本所属的类别。
+
+mds=cmdscale(dist.e,k=2,eig=T)
+x = mds$points[,1]
+y = mds$points[,2]
+library(ggplot2)
+p=ggplot(data.frame(x,y),aes(x,y))
+p+geom_point(size=3,alpha=0.8,
+             aes(colour=factor(result),
+                 shape=iris$Species))
+
+# 为了显示聚类的效果，我们可以结合多维标度和聚类的结果。先将数据用MDS进行降维，
+# 然后以不同的的形状表示原本的分类，用不同的颜色来表示聚类的结果。
+# 可以看到setose品种聚类很成功，但有一些virginica品种的花被错误和virginica品种聚类到一起。
 
 
 
