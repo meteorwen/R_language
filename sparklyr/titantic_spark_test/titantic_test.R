@@ -1,5 +1,4 @@
 #  https://beta.rstudioconnect.com/content/1518/notebook-classification.html
-
 library(sparklyr)
 library(dplyr)
 library(tidyr)
@@ -22,18 +21,17 @@ train <- spark_read_csv(sc2, name = "titanic", path = "hdfs:///user/dsg/titantic
 
 # --------------------------      data ETL    ----------------------------------
 titanic2_tbl <- train %>% 
-  dplyr::mutate(Family_Size = SibSp + Parch + 1L) %>% 
-  dplyr::mutate(Pclass = as.character(Pclass)) %>%
-  dplyr::filter(!is.na(Embarked)) %>%
-  dplyr::mutate(Age = if_else(is.na(Age), mean(Age), Age)) %>%
+  dplyr::mutate(Family_Size = SibSp + Parch + 1L) %>%   #Family_size=旁系数量+直系数量 +1(乘船本人)的目的ft_bucketizer区间统计是左开右闭
+  dplyr::mutate(Pclass = as.character(Pclass)) %>%      #船舱等级转换字符型
+  dplyr::filter(Embarked != "") %>%                     #去掉缺失的登船港口的用户数
+  dplyr::mutate(Age = if_else(is.na(Age), mean(Age,na.rm = T), Age)) %>%   #将缺失年龄的用户求平均
   sdf_register("titanic2")      #保存的spark cache中
 
 # Transform family size with Spark ML API
 titanic_final_tbl <- titanic2_tbl %>%
-  dplyr::mutate(Family_Size = as.numeric(Family_size)) %>%
-  sdf_mutate(
-    Family_Sizes = ft_bucketizer(Family_Size, splits = c(1,2,5,12))  #ft_bucketizer将家庭大小分组。
-  ) %>%
+  dplyr::mutate(Family_Size = as.numeric(Family_size)) %>%  #将Family_size转换成浮点型才能用于mutate
+  sdf_mutate(Family_Sizes = ft_bucketizer(Family_Size, splits = c(1,2,5,12))) %>% 
+  #ft_bucketizer将家庭大小分组(分箱（分段处理）：将连续数值转换为离散类别 )默认会将NA 转换成0。
   dplyr::mutate(Family_Sizes = as.character(as.integer(Family_Sizes))) %>%
   sdf_register("titanic_final")
 
@@ -50,6 +48,7 @@ test_tbl <- partition$test
 
 
 # Model survival as a function of several predictors
+#  Survived 生存情况 ；Pclass客舱等级（1、2、3）；SibSp在船兄弟姐妹/配偶数量 ；Parch在船父母数/子女数 ；Fare票价 ；Embarked登船港口
 ml_formula <- formula(Survived ~ Pclass + Sex + Age + SibSp + Parch + Fare + Embarked + Family_Sizes)
 
 
@@ -158,7 +157,7 @@ gather(perf_metrics, metric, value, AUC, Accuracy) %>%
   ylab("Percent") +
   ggtitle("Performance Metrics")
 
-# 特色重要
+# --------------------------      特色重要    ----------------------------------
 # 将每个模型所识别的特征作为生存的重要预测因子进行比较也很有意义。
 #逻辑回归和树模型实现了特征重要性度量。性别，票价和年龄是一些最重要的特征。
 
@@ -184,11 +183,9 @@ feature_importance %>%
   ggtitle("Feature Importance")
 
 
-
-
-# 比较运行时间
+# --------------------------      运行时间    ----------------------------------
 # 训练模型的时间很重要。使用以下代码评估每个模型的n时间并绘制结果。
-# 请注意，梯度增强树木和神经网络需要相当长的时间来训练其他方法。
+#请注意，梯度增强树木和神经网络需要相当长的时间来训练其他方法。
 # Number of reps per model
 n <- 10
 
@@ -230,3 +227,5 @@ result %>% ggplot(aes(time, reorder(model, time))) +
   xlab("Seconds") +
   ylab("") +
   ggtitle("Model training times")
+
+spark_disconnect(sc2)
