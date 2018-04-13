@@ -97,7 +97,38 @@ read_m <- function(wd,p){
 # read_m(wd,p)
 
 
+# 数据拆分成训练集和测试集，返回list类型
+split_dt <- function(dt,proportion){
+  index  <- sample(2, nrow(dt), replace=T, 
+                   prob=c(proportion,(1-proportion)))
+  train <- dt[index==1,]
+  test <- dt[index==2,]
+  data <- list(train=train,test=test)
+  return(data)
+}
 
+#验证两个向量的异同，最后得出相同的比率
+# x <- c(1,1,1,1,2,2,3,3,4,4)
+# y <- c(1,1,1,1,2,1,5,3,4,4)
+
+ver_ratio <- function(x,y){
+  require(magrittr)
+  table(x,y) %>% 
+    prop.table %>% 
+    diag %>% 
+    sum %>% 
+    return()
+}
+# ver_ratio(x,y)
+# ver_ratio(y,x)
+# 重名了列名，dt 是df 类型，y是指定自变量（单列），剩余因变量
+def_rename <- function(dt,y){
+  require(magrittr)
+  colnames(dt)[y] <- "y"
+  colnames(dt)[-y] <- rep("x",(ncol(dt)-1)) %>% 
+    paste0(c(1:(ncol(dt)-1))) 
+  return(dt)
+}
 
 
 
