@@ -1,0 +1,32 @@
+---
+title: "交大优秀学生与问题学生分析"
+author: "邱文"
+date: "2018/6/15"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 学生数据集
+
+* 优秀学生：292 人
+* 问题学生：480 人
+主要是观测这两类学生中的在日常行为分析中一些变化和趋势分析。
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
